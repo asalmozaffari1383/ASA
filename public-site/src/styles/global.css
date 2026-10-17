@@ -1,0 +1,173 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ---------------------------------------------------------------------------
+   Type system — self-hosted (no runtime CDN dependency).
+   Display  : Estedad   — industrial Persian grotesque; headlines, numerals.
+   Body     : Vazirmatn — neutral, professional grotesque for reading text.
+   --------------------------------------------------------------------------- */
+
+@font-face {
+  font-family: "Estedad";
+  src: url("../assets/fonts/Estedad-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Estedad";
+  src: url("../assets/fonts/Estedad-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Estedad";
+  src: url("../assets/fonts/Estedad-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Estedad";
+  src: url("../assets/fonts/Estedad-ExtraBold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Estedad";
+  src: url("../assets/fonts/Estedad-Black.woff2") format("woff2");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../assets/fonts/Vazirmatn-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../assets/fonts/Vazirmatn-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../assets/fonts/Vazirmatn-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("../assets/fonts/Vazirmatn-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 130px;
+}
+
+body {
+  direction: rtl;
+  margin: 0;
+  background-color: #f4f7fa;
+  color: #12283f;
+  font-family: Vazirmatn, Vazir, IRANSans, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Impact numerals and stats — the heaviest, most engineered voice. */
+.font-heavy {
+  font-family: Estedad, Vazirmatn, system-ui, sans-serif;
+  font-weight: 900;
+}
+
+/* --- Industrial shape motifs -------------------------------------------------
+   Chamfered "notch" corners (top-left + bottom-right) read as a cut/engineered
+   panel. Applied to solid-filled elements (buttons, plates, dark bands). */
+.clip-notch {
+  clip-path: polygon(
+    18px 0,
+    100% 0,
+    100% calc(100% - 18px),
+    calc(100% - 18px) 100%,
+    0 100%,
+    0 18px
+  );
+}
+
+.clip-notch-sm {
+  clip-path: polygon(
+    10px 0,
+    100% 0,
+    100% calc(100% - 10px),
+    calc(100% - 10px) 100%,
+    0 100%,
+    0 10px
+  );
+}
+
+/* Diagonal hazard/caution stripes — a restrained industrial accent. */
+.hazard-stripes {
+  background-image: repeating-linear-gradient(
+    -45deg,
+    #a8a29e 0,
+    #a8a29e 8px,
+    transparent 8px,
+    transparent 16px
+  );
+}
+
+::selection {
+  background: #d8eafa;
+  color: #0a1c30;
+}
+
+/* Consistent, visible keyboard focus — sharp monochrome tech. */
+:focus-visible {
+  outline: none;
+  border-radius: 2px;
+  box-shadow:
+    0 0 0 2px #ffffff,
+    0 0 0 4px rgba(24, 24, 27, 0.6);
+}
+
+/* Latin technical data (certificate IDs) in a precise mono setting. */
+.font-data {
+  font-family: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>فرم درخواست بازرسی ـ {{ req.tracking_code }}</title>
+<style>
+  @font-face { font-family: "ASA Vazirmatn"; src: url("{{ assets.regular_font }}") format("truetype"); font-weight: 400; }
+  @font-face { font-family: "ASA Vazirmatn"; src: url("{{ assets.bold_font }}") format("truetype"); font-weight: 700; }
+  @page {
+    size: A4;
+    margin: 18mm 18mm 20mm;
+    @bottom-right { content: "ایمن سازان آرارات | فرم درخواست بازرسی"; font-family: "ASA Vazirmatn"; font-size: 8pt; color: #66778a; direction: rtl; }
+    @bottom-left { content: "صفحه " counter(page, persian) " از " counter(pages, persian); font-family: "ASA Vazirmatn"; font-size: 8pt; color: #66778a; direction: rtl; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 9pt/1.75 "ASA Vazirmatn", sans-serif; color: #142b42; direction: rtl; text-align: right; }
+  table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  .letterhead { border-bottom: 2px solid #163b5d; padding-bottom: 5mm; }
+  .letterhead td { border: 0; vertical-align: middle; padding: 0; }
+  .brand { width: 20mm; }
+  .brand img { width: 16mm; height: 16mm; object-fit: contain; }
+  .document-code { width: 37mm; text-align: left; }
+  .document-code span { color: #66778a; font-size: 8pt; }
+  .document-code strong { display: block; font-size: 12pt; direction: ltr; letter-spacing: 0.5pt; }
+  h1 { margin: 1mm 0 0; font-size: 17pt; font-weight: 700; line-height: 1.7; }
+  .company { margin: 0; font-size: 10pt; font-weight: 700; color: #46627d; }
+  .meta { margin-top: 5mm; background: #eef3f8; }
+  .meta td { padding: 3mm; border-left: 1px solid #dbe3eb; font-size: 8pt; }
+  .meta span { display: block; color: #66778a; }
+  .meta strong { display: block; font-size: 9pt; }
+  h2 { margin: 4mm 0 2mm; font-size: 10pt; line-height: 1.8; border-bottom: 1px solid #dbe3eb; padding-bottom: 1.5mm; break-after: avoid; }
+  .section-number { color: #6a8197; font-size: 9pt; margin-left: 2mm; }
+  .fields { margin-bottom: 1mm; }
+  .fields th, .fields td { padding: 2mm 3mm; border: 1px solid #dbe3eb; vertical-align: top; overflow-wrap: anywhere; }
+  .fields th { width: 21%; background: #f5f7fa; font-weight: 400; color: #5e7185; font-size: 8pt; }
+  .fields td { width: 29%; font-weight: 700; }
+  .fields tr { break-inside: avoid; }
+  .address { padding: 3mm; margin: 0 0 3mm; background: #f5f7fa; border-right: 2px solid #8aaac7; white-space: pre-wrap; overflow-wrap: anywhere; orphans: 3; widows: 3; }
+  .address strong { font-weight: 400; color: #5e7185; margin-left: 3mm; }
+  .systems th { width: 70%; }
+  .systems td { width: 30%; font-weight: 700; text-align: center; }
+  .note-title { margin: 3mm 0 1mm; font-weight: 700; font-size: 8pt; color: #46627d; break-after: avoid; }
+  .note { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; orphans: 3; widows: 3; }
+  .attachments td { padding: 3mm 2mm; border: 1px solid #dbe3eb; font-size: 8pt; text-align: center; }
+  .document-end { break-inside: avoid; }
+  .attachments strong { display: block; font-weight: 400; }
+  .attachments span { display: block; color: #66778a; font-size: 7pt; }
+  .record-note { margin: 5mm 0 0; padding-top: 3mm; border-top: 1px solid #dbe3eb; font-size: 7.5pt; color: #66778a; }
+</style>
+</head>
+<body>
+  <div class="letterhead">
+    <table>
+      <tr>
+        <td class="brand"><img src="{{ assets.logo }}" alt="آسا"></td>
+        <td><p class="company">ایمن سازان آرارات</p><h1>فرم درخواست بازرسی ایمنی</h1></td>
+        <td class="document-code"><span>کد رهگیری درخواست</span><strong>{{ req.tracking_code }}</strong></td>
+      </tr>
+    </table>
+  </div>
+
+  <table class="meta">
+    <tr>
+      <td><span>تاریخ ثبت درخواست</span><strong>{{ request_date }}</strong></td>
+      <td><span>مسیر ثبت</span><strong>{{ req.get_source_display }}</strong></td>
+      <td><span>وضعیت پرونده</span><strong>{{ req.get_status_display }}</strong></td>
+    </tr>
+  </table>
+
+  {% for section in sections %}
+    <h2><span class="section-number">{{ section.number }}</span>{{ section.title }}</h2>
+    {% if section.address %}<p class="address"><strong>نشانی محل:</strong>{{ section.address }}</p>{% endif %}
+    <table class="fields">
+      <tbody>
+        {% for row in section.rows %}
+          <tr>{% for label, value in row %}<th scope="row">{{ label }}</th><td>{{ value }}</td>{% endfor %}</tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endfor %}
+
+  <h2><span class="section-number">۰۳</span>وضعیت تأسیسات و تجهیزات ایمنی</h2>
+  <table class="fields systems">
+    <tbody>
+      {% for system in systems %}<tr><th scope="row">{{ system.label }}</th><td>{{ system.status }}</td></tr>{% endfor %}
+    </tbody>
+  </table>
+  {% for note in notes %}<h3 class="note-title">{{ note.label }}</h3><p class="note">{{ note.value }}</p>{% endfor %}
+
+  <div class="document-end">
+  <h2><span class="section-number">۰۴</span>مدارک همراه درخواست</h2>
+  <table class="attachments">
+    <tr>{% for attachment in attachments %}<td><strong>{{ attachment.label }}</strong><span>{{ attachment.status }}</span></td>{% endfor %}</tr>
+  </table>
+  <p class="record-note">این فرم بر اساس آخرین اطلاعات ذخیره‌شدهٔ درخواست تهیه شده است.<br>زمان تهیهٔ نسخه: {{ generated_date }}، ساعت {{ generated_time }}</p>
+  </div>
+</body>
+</html>

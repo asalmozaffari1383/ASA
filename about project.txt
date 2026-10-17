@@ -1,0 +1,130 @@
+# Comprehensive Technical and Architectural Document: ASA Safety Consulting System
+## Part 1: General Architecture & Data Flow
+This system consists of three main components:
+ 1. Backend (Zipped Core): Django and Django REST Framework (DRF) paired with a PostgreSQL database and an S3-compatible cloud storage for files.
+ 2. User Interface (React Frontend): A public website for applicants and a fully responsive management panel (PWA) for admins.
+ 3. Bale Bot: A Python-based Telegram/Bale bot connected to the backend API to receive manual form images and payment receipts.
+## Part 2: Detailed Database Schema & Models
+### 1. Custom User Model (User)
+Designed for dynamic Role-Based Access Control (RBAC).
+ * id (UUID, Primary Key)
+ * username (String, Unique)
+ * password (String)
+ * role (String - Choices: ceo, expert, secretary)
+ * signature_image (ImageField, Nullable) - Transparent signature for rendering on certificates.
+ * Dynamic Permissions (Booleans):
+   * can_manage_financial (Default: False)
+   * can_fill_bale_forms (Default: False)
+   * can_do_inspection (Default: False)
+   * can_issue_certificate (Default: False)
+### 2. Inspection Request Model (InspectionRequest)
+The core model storing form data.
+ * id (UUID, Primary Key)
+ * tracking_code (CharField, Unique, Indexed) - 8-character unique code (e.g., ASA-49F2).
+ * source (CharField - Choices: website, bale)
+ * status (CharField - Choices: pending_payment, bale_photo_uploaded, scheduled, under_review, completed)
+ * Applicant Data:
+   * company_name (CharField, Max: 255)
+   * ceo_name (CharField, Max: 255)
+   * request_date (DateField, Auto Now Add)
+   * ceo_phone (CharField, Max: 11, Indexed)
+   * backup_phone (CharField, Max: 11, Nullable)
+   * address (TextField)
+   * postal_code (CharField, Max: 10, Nullable)
+   * activity_type (CharField, Max: 255)
+   * referrer_name (CharField, Max: 255, Nullable)
+   * total_area_land (PositiveIntegerField)
+   * total_area_building (PositiveIntegerField)
+   * ownership_type (CharField - Choices: malki [Owned], estijari [Leased])
+   * inspection_type (CharField - Choices: initial, periodic)
+ * System Statuses (Allowing "Unknown"/Null):
+   * has_fire_extinguisher_system (BooleanField, Nullable)
+   * fire_extinguisher_details (TextField, Nullable)
+   * has_fire_alarm_system (BooleanField, Nullable)
+   * fire_alarm_details (TextField, Nullable)
+   * has_earthing_system (BooleanField, Nullable)
+   * earthing_year (CharField, Max: 4, Nullable)
+ * Attachments:
+   * deed_file (FileField, Nullable)
+   * lease_file (FileField, Nullable)
+   * bale_form_photo (ImageField, Nullable)
+### 3. Financial Record Model (FinancialRecord)
+ * id (UUID, Primary Key)
+ * request (ForeignKey to InspectionRequest, Related Name: payments)
+ * stage (CharField - Choices: stage_1 [Down payment], stage_2 [Final settlement])
+[6/26/26 3:04 PM] Mahdi Yousefi: * amount_charged (DecimalField) - Dynamically fetched from settings.
+ * receipt_image (ImageField)
+ * is_approved (BooleanField, Default: False)
+ * approved_by (ForeignKey to User, Nullable)
+ * created_at (DateTimeField, Auto Now Add)
+### 4. Inspection Report Model (InspectionReport)
+Manages the technical checklist and the parallel defect-fixing workflow:
+ * request (OneToOneField to InspectionRequest, Related Name: report)
+ * expert (ForeignKey to User)
+ * inspection_date (DateTimeField, Auto Now Add)
+ * Defects & Fixes Fields:
+   * has_covered_space_without_alarm (BooleanField, Default: False)
+   * covered_space_comment (TextField, Nullable)
+   * is_alarm_fixed (BooleanField, Default: False) - Admin toggle.
+   * alarm_fix_image (ImageField, Nullable) - Proof of fix.
+   * lacks_fire_extinguishing_system (BooleanField, Default: False)
+   * extinguishing_system_comment (TextField, Nullable)
+   * is_extinguishing_fixed (BooleanField, Default: False)
+   * extinguishing_fix_image (ImageField, Nullable)
+   * co2_cylinders_needed (PositiveIntegerField, Default: 0)
+   * powder_gas_cylinders_needed (PositiveIntegerField, Default: 0)
+   * cylinders_comment (TextField, Nullable)
+   * is_cylinders_fixed (BooleanField, Default: False)
+   * cylinders_fix_image (ImageField, Nullable)
+   * lease_fix_required (BooleanField, Default: False)
+   * lease_fix_comment (TextField, Nullable)
+   * is_lease_fixed (BooleanField, Default: False)
+   * lease_fix_image (ImageField, Nullable)
+   * deed_delivery_required (BooleanField, Default: False)
+   * deed_delivery_comment (TextField, Nullable)
+   * is_deed_fixed (BooleanField, Default: False)
+   * deed_fix_image (ImageField, Nullable)
+   * additional_notes (TextField, Nullable)
+### 5. Inspection Photos Model (InspectionPhoto)
+ * report (ForeignKey to InspectionReport, Related Name: photos)
+ * photo (ImageField) - Multiple environmental photos uploaded by the expert.
+## Part 3: UI/UX Design Details & Component Behavior
+### 1. Public Application Form (Website)
+A responsive multi-step wizard with strict validation:
+ * Step 1: Applicant details.
+ * Step 2: Technical specs (Area, ownership radio buttons).
+ * Step 3: System statuses. Three-state inputs (Yes/No/Unknown). If "Yes", expand a textarea for details.
+ * Step 4: File uploads. *Edge Case Behavior:* If deed_file is not uploaded, display a prominent orange warning: "Warning: Deed not uploaded. You must present the deed document to the expert on inspection day." Do not block submission. Display the dynamic stage_1 payment amount above the receipt upload box.
+ * Success Screen: Display success message and generate the 8-character tracking_code in large font.
+### 2. Secretary Panel: "Bale Requests" (Split-Screen UI)
+ * Left Pane: Advanced Image Viewer (Zoom/Rotate) displaying the bale_form_photo and receipt_image in tabs.
+ * Right Pane: A vertical digital form mimicking the public website form. The secretary types the data while reading the image.
+ * Action: "Approve & Register" button changes status to pending_payment.
+### 3. Expert Workspace (Mobile-Friendly)
+ * List View: Simple cards for requests in scheduled status.
+ * Report Form: Checklists using toggle switches. Toggling a defect (e.g., "Missing Fire Alarm") expands a comment textarea. Includes numeric inputs for cylinders and a multi-image uploader for InspectionPhoto.
+ * Action: Submitting the report auto-changes the request status to under_review and triggers an SMS to the user.
+### 4. CEO Control Center
+ * Financial Dashboard: View and approve/reject stage_1 and stage_2 receipts.
+ * Defect Verification: View under_review requests. Admins can view user-uploaded fix images and check the is_fixed green tick for each defect.
+ * Certificate Issuance Logic: The "Issue Certificate" button is strictly Disabled unless a backend function validates: FinancialRecord(stage_2).is_approved == True AND all registered defects have their respective is_fixed == True.
+[6/26/26 3:04 PM] Mahdi Yousefi: * System Settings: Form to mutate dynamic payment amounts.
+ * User Management: Assign roles and toggle dynamic boolean permissions for staff.
+### 5. Client Tracking Page
+ * Input: Single input for tracking_code.
+ * View: Visual stepper indicating current status.
+ * Fix Uploads: If status is under_review, list pending defects. Provide an image upload button under each defect for the user to submit proof of fix.
+ * Final Payment: Provide an upload box for the stage_2 settlement receipt.
+## Part 4: Bale Bot State Machine (Flowchart)
+ 1. /start \rightarrow Send welcome message with 4 options.
+ 2. Selects Option 1 \rightarrow Bot sends the blank PDF form and CEO's bank card number.
+ 3. State: WAITING_FOR_PHONE \rightarrow Prompt native contact sharing (request_contact=True).
+ 4. State: WAITING_FOR_FORM_PHOTO \rightarrow User uploads the manually filled form image.
+ 5. State: WAITING_FOR_RECEIPT_PHOTO \rightarrow User uploads the down-payment receipt.
+ 6. Final Action \rightarrow Bot executes a Multipart HTTP POST to /api/bale/requests/create/ with the phone number and both images. Returns the generated tracking_code to the user and resets state.
+## Part 5: Security, Stability & Clean Code Requirements (Anti-Malpractice Manual)
+ 1. File Security: All file uploads must pass through a strict validator using python-magic to verify MIME types. Allowed formats: pdf, jpeg, png. Limit sizes (e.g., 5MB for receipts, 10MB for documents).
+ 2. N+1 Query Prevention: Ensure DRF viewsets utilize select_related('request') and prefetch_related('payments') for administrative lists.
+ 3. Stateless Architecture: Do not store media locally. Use django-storages to pipe all uploads to an S3-compatible object storage.
+ 4. Rate Limiting: Apply DRF Throttling (AnonRateThrottle) to the /api/requests/track/ endpoint to prevent tracking code brute-force attacks.
+ 5. PDF Rendering: Use an isolated module (e.g., WeasyPrint) for HTML-to-PDF conversion. Electronic signatures must be positioned with absolute CSS to avoid overlapping dynamic text data.
