@@ -32,5 +32,5 @@ urlpatterns = [
 # In local development with filesystem storage (USE_S3 off), let Django serve the
 # uploaded media so receipts/fix images are viewable in the browser. In production
 # (USE_S3 on / DEBUG off) media is served from S3 and this is skipped.
-if settings.DEBUG and not settings.USE_S3:
+if not settings.USE_S3:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
