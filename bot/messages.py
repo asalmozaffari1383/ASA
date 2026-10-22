@@ -19,7 +19,7 @@ ABOUT = (
     "گواهی‌نامه‌های معتبر است."
 )
 
-CONTACT = "📞 شماره تماس پشتیبانی: ۰۲۱-۱۲۳۴۵۶۷۸"
+CONTACT = f"برای ارتباط با شرکت، بخش تماس با ما در سایت را ببینید:\n{config.PUBLIC_SITE_URL}/#contact"
 
 HELP = (
     "برای ثبت درخواست، گزینه «ثبت درخواست بازرسی» را انتخاب کنید، سپس به‌ترتیب:\n"
@@ -28,11 +28,16 @@ HELP = (
 )
 
 
-def start_payment_text() -> str:
+def start_payment_text(payment) -> str:
+    destinations = "\n".join(
+        f"{label}: {value}" for label, value in [
+            ("شماره کارت", payment.card_number), ("شماره حساب", payment.account_number),
+            ("شماره شبا", payment.iban),
+        ] if value
+    )
     return (
-        "لطفاً مبلغ پیش‌پرداخت را به شماره کارت زیر واریز کنید:\n\n"
-        f"💳 {config.CEO_CARD_NUMBER}\n"
-        "به نام: شرکت مشاوران ایمنی آسا\n\n"
+        f"لطفاً مبلغ پیش‌پرداخت {payment.amount:,.0f} ریال را به حساب زیر واریز کنید:\n\n"
+        f"{destinations}\nبه نام: {payment.account_holder}\n\n"
         "فرم خام درخواست را دریافت، چاپ و تکمیل نمایید."
     )
 
@@ -51,6 +56,7 @@ ASK_RECEIPT_PHOTO = "✅ فرم دریافت شد.\n\nاکنون «تصویر» 
 PROCESSING = "در حال ثبت درخواست شما... ⏳"
 GENERIC_ERROR = "مشکلی پیش آمده است، لطفاً مجدداً تلاش کنید."
 API_ERROR = "ثبت درخواست در سامانه با خطا مواجه شد. لطفاً کمی بعد دوباره تلاش کنید."
+PAYMENT_UNAVAILABLE = "اطلاعات پرداخت در حال حاضر آماده نیست. لطفاً کمی بعد دوباره تلاش کنید یا از طریق سایت با شرکت تماس بگیرید."
 INVALID_SUBMISSION = (
     "اطلاعات یا تصاویر ارسالی نامعتبر است. لطفاً مطمئن شوید تصاویر فرم و رسید با "
     "فرمت JPG یا PNG و واضح هستند، سپس دوباره تصویر رسید را ارسال کنید."
@@ -68,7 +74,10 @@ def success_text(tracking_code: str) -> str:
 
 def normalize_phone(raw: str) -> str:
     """Coerce to canonical ``09xxxxxxxxx``; return '' if not a valid IR mobile."""
-    digits = "".join(ch for ch in raw if ch.isdigit())
+    raw = raw.translate(str.maketrans("۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩", "01234567890123456789"))
+    digits = "".join(character for character in raw if character in "0123456789")
+    if digits.startswith("0098"):
+        digits = digits[2:]
     if digits.startswith("98"):
         digits = "0" + digits[2:]
     elif digits.startswith("9") and len(digits) == 10:

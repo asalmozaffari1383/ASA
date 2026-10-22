@@ -140,6 +140,30 @@ export const getSystemSettings = () =>
 export const updateSystemSettings = (data: Partial<SystemSettings>) =>
   api.patch<SystemSettings>("/financials/settings/", data);
 
+export interface BotSettings {
+  stage_1_amount: string;
+  stage_2_amount: string;
+  ceo_card_number: string;
+  ceo_account_number: string;
+  ceo_iban: string;
+  ceo_account_holder: string;
+  updated_at: string;
+  recent_changes: {
+    id: string;
+    actor_username: string;
+    before: Record<string, string>;
+    after: Record<string, string>;
+    created_at: string;
+  }[];
+}
+
+export const getBotSettings = () => api.get<BotSettings>("/ceo/bot-settings/");
+
+export const updateBotSettings = (data: Omit<BotSettings, "updated_at" | "recent_changes"> & {
+  current_password: string;
+  expected_updated_at: string;
+}) => api.patch<BotSettings>("/ceo/bot-settings/", data);
+
 // --- CEO: certificates / defects --------------------------------------------
 export const listUnderReview = (params: ListParams = {}) =>
   api.get<Paginated<StaffRequestListItem>>("/ceo/certificate-requests/", {

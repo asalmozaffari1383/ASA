@@ -11,7 +11,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.certificates.services import build_certificate
+from apps.certificates.services import CertificateSignatureError, build_certificate
 from apps.common.permissions import CanFillBaleForms, CanIssueCertificate
 from apps.common.throttles import (
     BaleCreateRateThrottle,
@@ -372,7 +372,10 @@ class CeoCertificateViewSet(
             setattr(instance, field, issuance.validated_data.get(field, getattr(instance, field)))
         instance.certificate_description = instance.certificate_description.strip() or DEFAULT_DESCRIPTION
         instance.certificate_issued_at = timezone.now()
-        certificate_url = build_certificate(instance, issued_by=request.user)
+        try:
+            certificate_url = build_certificate(instance, issued_by=request.user)
+        except CertificateSignatureError as error:
+            return Response({"detail": str(error)}, status=status.HTTP_400_BAD_REQUEST)
         with transaction.atomic():
             instance.save(update_fields=[*fields, "certificate_issued_at"])
             instance = transition_to(instance, InspectionRequest.Status.COMPLETED)

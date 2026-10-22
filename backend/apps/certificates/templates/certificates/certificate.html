@@ -13,15 +13,15 @@
 }
 * { box-sizing: border-box; }
 body { margin: 0; color: #111; font-family: Vazirmatn; direction: rtl; font-size: 10pt; line-height: 1.9; }
-.header { width: 100%; border-collapse: collapse; margin-bottom: 7mm; }
+.header { width: 100%; border-collapse: collapse; margin-bottom: 5mm; }
 .header td { width: 50%; vertical-align: top; }
-.brand { width: 59mm; height: auto; }
-.brand-caption { width: 59mm; text-align: center; font-size: 10pt; }
+.brand { width: 55mm; height: auto; }
+.brand-caption { width: 55mm; text-align: center; font-size: 10pt; }
 .meta { text-align: left; padding: 1mm 0 0 6mm; font-size: 10pt; }
 .meta div { margin-bottom: 1mm; }
 .qualification { text-align: center; font-size: 8pt; margin: 0 0 2mm; }
 .details { width: 100%; border-collapse: collapse; table-layout: fixed; }
-.details td, .details th { border: .3mm solid #161616; padding: 1.5mm 2mm; overflow-wrap: anywhere; }
+.details td, .details th { border: .3mm solid #161616; padding: 1.2mm 2mm; overflow-wrap: anywhere; }
 .details th { background: #c4e8fa; font-size: 16pt; padding: 2mm; text-align: center; }
 .details .caption { text-align: center; font-size: 12pt; }
 .details td { width: 50%; }
@@ -30,11 +30,12 @@ body { margin: 0; color: #111; font-family: Vazirmatn; direction: rtl; font-size
 .conditions { list-style: none; padding: 0; margin: 0; font-size: 9pt; }
 .conditions li { position: relative; padding-right: 4mm; text-align: justify; margin-bottom: 1mm; break-inside: avoid; }
 .conditions li::before { content: '❖'; color: #83cbee; position: absolute; right: 0; }
-.signatures { width: 100%; margin-top: 10mm; border-collapse: collapse; break-inside: avoid; }
-.signatures td { width: 50%; text-align: center; vertical-align: bottom; height: 24mm; }
-.signatures img { display: block; margin: 0 auto; max-width: 55mm; max-height: 24mm; }
+.signatures { width: 100%; margin-top: 8mm; border-collapse: collapse; table-layout: fixed; break-inside: avoid; }
+.signatures td { width: 50%; text-align: center; vertical-align: top; padding: 0 5mm; }
+.signature-slot { height: 22mm; line-height: 22mm; text-align: center; }
+.signatures img { display: inline-block; vertical-align: middle; width: auto; height: auto; max-width: 48mm; max-height: 20mm; object-fit: contain; }
 .signatures .name { font-size: 8pt; }
-.validity { border: .3mm solid #111; padding: 1.5mm 2mm; margin-top: 7mm; font-size: 8pt; text-align: center; break-inside: avoid; }
+.validity { border: .3mm solid #111; padding: 1.5mm 2mm; margin-top: 4mm; font-size: 8pt; text-align: center; break-inside: avoid; }
 .footer { position: running(footer); width: 100%; text-align: left; padding-bottom: 3mm; }
 .footer img { width: 145mm; height: auto; }
 .footer table { width: 100%; border-collapse: collapse; }
@@ -69,8 +70,8 @@ body { margin: 0; color: #111; font-family: Vazirmatn; direction: rtl; font-size
     <ul class="conditions">{% for item in description_items %}<li>{{ item }}</li>{% endfor %}</ul>
 </section>
 <table class="signatures"><tr>
-    <td>{% if expert_signature_url %}<img src="{{ expert_signature_url }}" alt="امضای کارشناس فنی">{% endif %}<div>کارشناس فنی</div><div class="name">{% if expert %}{{ expert.get_full_name|default:expert.username }}{% endif %}</div></td>
-    <td>{% if ceo_signature_url %}<img src="{{ ceo_signature_url }}" alt="امضای صادرکننده">{% endif %}<div>ایمن سازان آرارات — مهندسین مشاور ایمنی آسا</div><div class="name">{% if issued_by %}{{ issued_by.get_full_name|default:issued_by.username }}{% endif %}</div></td>
+    <td><div>کارشناس فنی</div><div class="signature-slot">{% if expert_signature_url %}<img src="{{ expert_signature_url }}" alt="امضای کارشناس فنی">{% endif %}</div><div class="name">{% if expert %}{{ expert.get_full_name|default:expert.username }}{% endif %}</div></td>
+    <td><div>ایمن سازان آرارات — مهندسین مشاور ایمنی آسا</div><div class="signature-slot">{% if ceo_signature_url %}<img src="{{ ceo_signature_url }}" alt="امضای صادرکننده">{% endif %}</div><div class="name">{% if issued_by %}{{ issued_by.get_full_name|default:issued_by.username }}{% endif %}</div></td>
 </tr></table>
 <div class="validity">اعتبار این گزارش شش ماه پس از صدور آن می‌باشد و پس از طی این زمان، و یا هرگونه تغییر و یا تغییرات در مجموعه لازم است بازرسی مجدد صورت گیرد.</div>
 </body>

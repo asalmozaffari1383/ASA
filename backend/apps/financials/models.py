@@ -108,6 +108,9 @@ class SystemConfiguration(models.Model):
         verbose_name=_("شماره کارت مدیرعامل"),
         help_text=_("برای ارسال به کاربر در ربات بله."),
     )
+    ceo_account_number = models.CharField(max_length=30, blank=True, default="")
+    ceo_iban = models.CharField(max_length=26, blank=True, default="")
+    ceo_account_holder = models.CharField(max_length=120, blank=True, default="")
     allow_inspection_without_advance = models.BooleanField(
         default=False,
         verbose_name=_("امکان بازرسی بدون پیش‌پرداخت"),
@@ -134,3 +137,20 @@ class SystemConfiguration(models.Model):
         """Return the singleton, creating it with defaults on first access."""
         obj, _ = cls.objects.get_or_create(pk=cls.SINGLETON_PK)
         return obj
+
+
+class ConfigurationChange(models.Model):
+    class Action(models.TextChoices):
+        UPDATED = "updated", _("تغییر تنظیمات بات")
+        PASSWORD_FAILED = "password_failed", _("تأیید رمز ناموفق")
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    actor = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    actor_username = models.CharField(max_length=150)
+    action = models.CharField(max_length=30, choices=Action.choices)
+    before = models.JSONField(default=dict)
+    after = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ("-created_at",)

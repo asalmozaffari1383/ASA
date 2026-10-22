@@ -10,15 +10,15 @@ event loop so it can be unit-tested with fake message/bot objects.
 """
 
 import logging
-import os
 import sys
 
 import bale
 from bale import InputFile, MenuKeyboardButton, MenuKeyboardMarkup
 
 from . import config, messages
-from .api_client import BackendError, BackendValidationError, create_bale_request
+from .api_client import BackendError, BackendValidationError, create_bale_request, get_payment_configuration, download_application_form
 from .states import SessionStore, State
+from .polling import PersistentUpdater, PollingCheckpoint
 
 logging.basicConfig(
     level=logging.INFO,
@@ -68,18 +68,15 @@ def extract_image(message) -> tuple[str | None, str]:
 # --- Flow steps -------------------------------------------------------------
 async def begin_request(bot, chat_id: int) -> None:
     """Send the blank form + payment info and move to WAITING_FOR_PHONE."""
-    if os.path.exists(config.FORM_PDF_PATH):
-        # A str passed to InputFile is treated as a URL/file_id; to upload a local
-        # file we must hand it the raw bytes plus an explicit file name.
-        with open(config.FORM_PDF_PATH, "rb") as form_file:
-            document = InputFile(form_file.read(), file_name="application_form.pdf")
-        await bot.send_document(
-            chat_id,
-            document,
-            caption=messages.start_payment_text(),
-        )
-    else:
-        await bot.send_message(chat_id, messages.start_payment_text())
+    try:
+        payment = await get_payment_configuration()
+        form_bytes = await download_application_form(payment.version)
+    except BackendError:
+        logger.warning("Payment configuration is unavailable")
+        await bot.send_message(chat_id, messages.PAYMENT_UNAVAILABLE, components=main_menu())
+        return
+    document = InputFile(form_bytes, file_name="asa-application-form.pdf")
+    await bot.send_document(chat_id, document, caption=messages.start_payment_text(payment))
     store.get(chat_id).state = State.WAITING_FOR_PHONE
     await bot.send_message(chat_id, messages.ASK_PHONE, components=contact_menu())
 
@@ -184,22 +181,16 @@ def run_bot() -> None:
     if not config.BALE_BOT_TOKEN:
         raise SystemExit("BALE_BOT_TOKEN environment variable is required.")
 
-    bot = bale.Bot(token=config.BALE_BOT_TOKEN)
+    with PollingCheckpoint(config.BOT_STATE_DIR) as checkpoint:
+        bot = bale.Bot(token=config.BALE_BOT_TOKEN)
+        bot.updater = PersistentUpdater(bot, checkpoint, handle_message)
 
-    @bot.event
-    async def on_ready() -> None:  # noqa: D401
-        logger.info("Bot is ready and listening.")
+        @bot.event
+        async def on_ready() -> None:
+            logger.info("Bot is ready and listening.")
 
-    @bot.event
-    async def on_message(message) -> None:
-        await handle_message(bot, message)
-
-    @bot.event
-    async def on_error(event_name, *args) -> None:
-        logger.error("Error in bale event %r: %r", event_name, args)
-
-    logger.info("Starting ASA Bale bot...")
-    bot.run()
+        logger.info("Starting ASA Bale bot...")
+        bot.run()
 
 
 if __name__ == "__main__":

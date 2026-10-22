@@ -21,6 +21,7 @@ export function Footer() {
                 <li key={item.href}><Link to={item.href === "#" ? "/" : `/${item.href}`} className="transition hover:text-accent">{item.label}</Link></li>
               ))}
               <li><Link to="/track" className="transition hover:text-accent">پیگیری درخواست</Link></li>
+              <li><a href="https://ble.ir/AsaengBot" target="_blank" rel="noopener noreferrer" className="transition hover:text-accent">ثبت درخواست در پیام‌رسان بله</a></li>
             </ul>
           </nav>
           <div>

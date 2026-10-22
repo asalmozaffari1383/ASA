@@ -144,9 +144,3 @@ export const defaultValues: Partial<CertificateRequestForm> = {
   earthingYear: "",
   notes: "",
 };
-
-export const paymentInfo = {
-  amountRial: 30_000_000,
-  cardNumber: import.meta.env.VITE_PAYMENT_CARD_NUMBER ?? "",
-  accountHolder: import.meta.env.VITE_PAYMENT_ACCOUNT_HOLDER ?? "",
-} as const;

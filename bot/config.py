@@ -5,20 +5,16 @@ token is only *required* at run time, validated in ``main.run_bot``.
 """
 
 import os
+from pathlib import Path
 
 BALE_BOT_TOKEN = os.environ.get("BALE_BOT_TOKEN", "")
+BOT_STATE_DIR = os.environ.get("BOT_STATE_DIR", str(Path.home() / ".asa-bot"))
 
 # Backend API root. Inside docker-compose the bot reaches the web service by name.
 BACKEND_API_URL = os.environ.get("BACKEND_API_URL", "http://web:8000/api").rstrip("/")
 
 # Shown to the user for the stage-1 down payment.
-CEO_CARD_NUMBER = os.environ.get("CEO_CARD_NUMBER", "6037-9900-0000-0000")
-
-# Blank application form PDF sent on /start.
-FORM_PDF_PATH = os.environ.get(
-    "BALE_FORM_PATH",
-    os.path.join(os.path.dirname(__file__), "assets", "application_form.pdf"),
-)
+PUBLIC_SITE_URL = os.environ.get("PUBLIC_SITE_URL", "https://asaeng.org").rstrip("/")
 
 # HTTP resilience knobs for the backend multipart upload.
 HTTP_TIMEOUT = float(os.environ.get("BOT_HTTP_TIMEOUT", "20"))

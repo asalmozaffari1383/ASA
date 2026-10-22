@@ -1,6 +1,7 @@
 """User serializers: staff self-info and CEO-driven user management."""
 
 from rest_framework import serializers
+from django.db import transaction
 
 from apps.common.validators import validate_image
 
@@ -58,17 +59,30 @@ class UserManagementSerializer(serializers.ModelSerializer):
         style={"input_type": "password"},
         min_length=8,
     )
+    current_password = serializers.CharField(write_only=True, required=False, trim_whitespace=False, max_length=256)
     signature_image = serializers.ImageField(
         required=False, allow_null=True, validators=[validate_image]
     )
 
     class Meta:
         model = User
-        fields = ("id", "username", "password", "first_name", "last_name",
+        fields = ("id", "username", "password", "current_password", "first_name", "last_name",
                   "role", "title", "is_active", "signature_image", *PERMISSION_FIELDS)
         read_only_fields = ("id",)
 
+    def validate(self, attrs):
+        if attrs.get("role") == User.Role.CEO or (self.instance and (self.instance.role == User.Role.CEO or self.instance.is_superuser)):
+            from apps.financials.security import verify_current_password
+
+            with transaction.atomic():
+                actor = User.objects.select_for_update().get(pk=self.context["request"].user.pk)
+                verification = verify_current_password(actor, attrs.get("current_password"))
+            if verification != "valid":
+                raise serializers.ValidationError({"current_password": "برای تغییر حساب مدیر، رمز فعلی خود را تأیید کنید. پس از ۵ خطا، ۱۵ دقیقه صبر کنید."})
+        return attrs
+
     def create(self, validated_data):
+        validated_data.pop("current_password", None)
         password = validated_data.pop("password", None)
         user = User(**validated_data)
         if password:
@@ -79,6 +93,7 @@ class UserManagementSerializer(serializers.ModelSerializer):
         return user
 
     def update(self, instance, validated_data):
+        validated_data.pop("current_password", None)
         password = validated_data.pop("password", None)
         for attr, value in validated_data.items():
             setattr(instance, attr, value)

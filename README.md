@@ -104,7 +104,13 @@ Copy `.env.example` → `.env` and adjust. Docker Compose reads `.env` automatic
 |----------|-------|
 | `BALE_BOT_TOKEN` | **Required** to run the bot |
 | `BACKEND_API_URL` | `http://web:8000/api` (set by compose) |
-| `CEO_CARD_NUMBER` | Bank card shown to users for the stage-1 payment |
+| `BALE_BACKEND_API_URL` | Production API root; defaults to `https://asaeng.org/api` |
+| `PUBLIC_SITE_URL` | Website linked from the bot contact menu |
+
+The bot fetches payment details and the official application PDF for each new
+request. Configure the amount, account holder and destination in **تنظیمات بات**
+in the manager panel. Saving requires the manager password and records a change
+history. The PDF payment row uses these settings. See [Bale deployment](deploy/BALE.md).
 
 ### Frontend
 | Variable | Default | Notes |

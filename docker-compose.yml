@@ -73,7 +73,8 @@ services:
     environment:
       BALE_BOT_TOKEN: ${BALE_BOT_TOKEN:-}
       BACKEND_API_URL: http://web:8000/api
-      CEO_CARD_NUMBER: ${CEO_CARD_NUMBER:-6037-9900-0000-0000}
+    volumes:
+      - bot_state:/app/state
     depends_on:
       web:
         condition: service_healthy
@@ -81,3 +82,4 @@ services:
 
 volumes:
   postgres_data:
+  bot_state:

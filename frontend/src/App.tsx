@@ -9,6 +9,7 @@ import { CertificateCenter } from "./pages/ceo/CertificateCenter";
 import { ProfileSettings } from "./pages/settings/ProfileSettings";
 import { SiteContent } from "./pages/ceo/SiteContent";
 import { SitePartners } from "./pages/ceo/SitePartners";
+import { BotSettingsPage } from "./pages/ceo/BotSettings";
 
 export default function App() {
   return (
@@ -61,6 +62,7 @@ export default function App() {
         />
         <Route path="ceo/site-content" element={<ProtectedRoute ceoOnly><SiteContent /></ProtectedRoute>} />
         <Route path="ceo/site-partners" element={<ProtectedRoute ceoOnly><SitePartners /></ProtectedRoute>} />
+        <Route path="ceo/bot-settings" element={<ProtectedRoute ceoOnly><BotSettingsPage /></ProtectedRoute>} />
         <Route path="settings" element={<ProfileSettings />} />
       </Route>
 

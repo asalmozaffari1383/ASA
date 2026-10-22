@@ -1,39 +1,43 @@
 import { useEffect, useState } from "react";
 import { formatThousands } from "../../utils/persianDigits";
 import { fetchPublicConfig } from "../../services/certificateService";
-import { paymentInfo } from "./schema";
+import type { PublicConfig } from "../../services/types";
 
 function formatCard(raw: string): string {
   const digits = raw.replace(/\D/g, "");
   return digits.replace(/(\d{4})(?=\d)/g, "$1-") || raw;
 }
 
-// Shows the inspection fee and destination card, with a one-tap copy for the card
-// number. The amount + card are fetched live from the backend (`/public/config/`),
-// falling back to the bundled defaults while loading or if the request fails.
 export function PaymentSection() {
   const [copied, setCopied] = useState(false);
-  const [amountRial, setAmountRial] = useState<number>(paymentInfo.amountRial);
-  const [cardNumber, setCardNumber] = useState<string>(paymentInfo.cardNumber);
+  const [configuration, setConfiguration] = useState<PublicConfig | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
     fetchPublicConfig()
       .then((config) => {
         if (!active) return;
-        const amount = Number(config.stage_1_amount);
-        if (Number.isFinite(amount) && amount > 0) setAmountRial(amount);
-        if (config.ceo_card_number) setCardNumber(config.ceo_card_number);
+        setConfiguration(config);
       })
-      .catch(() => undefined);
+      .catch(() => undefined)
+      .finally(() => { if (active) setLoading(false); });
     return () => {
       active = false;
     };
   }, []);
 
+  const amountRial = Number(configuration?.stage_1_amount);
+  const destination = configuration?.ceo_iban || configuration?.ceo_card_number || configuration?.ceo_account_number || "";
+  const destinationLabel = configuration?.ceo_iban ? "شماره شبا" : configuration?.ceo_card_number ? "شماره کارت" : "شماره حساب";
+  if (loading) return <p role="status" className="rounded-lg bg-accent-soft p-5">در حال دریافت اطلاعات پرداخت…</p>;
+  if (!Number.isFinite(amountRial) || amountRial <= 0 || !destination || !configuration?.ceo_account_holder) {
+    return <p role="alert" className="rounded-lg bg-accent-soft p-5">اطلاعات پرداخت در دسترس نیست. پیش از واریز با شرکت تماس بگیرید یا صفحه را دوباره باز کنید.</p>;
+  }
+
   async function copyCard() {
     try {
-      await navigator.clipboard.writeText(cardNumber);
+      await navigator.clipboard.writeText(destination);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 2000);
     } catch {
@@ -58,10 +62,10 @@ export function PaymentSection() {
         </div>
 
         <div className="rounded-sm border border-steel/20 bg-white p-4 shadow-sm">
-          <p className="text-xs uppercase tracking-[0.1em] text-steel">شماره کارت</p>
+          <p className="text-xs uppercase tracking-[0.1em] text-steel">{destinationLabel}</p>
           <div className="mt-1 flex items-center justify-between gap-2">
-            <span dir="ltr" className="font-data text-lg font-bold tracking-wider text-ink">
-              {formatCard(cardNumber)}
+            <span dir="ltr" className="break-all font-data text-lg font-bold tracking-wider text-ink">
+              {configuration.ceo_iban ? destination : formatCard(destination)}
             </span>
             <button
               type="button"
@@ -71,7 +75,7 @@ export function PaymentSection() {
               {copied ? "کپی شد" : "کپی"}
             </button>
           </div>
-          <p className="mt-2 text-xs text-steel-dark">به نام {paymentInfo.accountHolder}</p>
+          <p className="mt-2 text-xs text-steel-dark">به نام {configuration.ceo_account_holder}</p>
         </div>
       </div>
     </div>

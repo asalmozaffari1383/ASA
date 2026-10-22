@@ -17,6 +17,7 @@ from io import BytesIO
 from pathlib import Path
 from urllib.parse import urlencode
 
+from PIL import Image, ImageChops, ImageOps
 import qrcode
 import qrcode.image.svg
 
@@ -40,18 +41,39 @@ def _certificate_assets():
     }
 
 
-def _safe_url(file_field):
-    """Return a file field's URL, or ``None`` if unset/unavailable."""
+class CertificateSignatureError(ValueError):
+    pass
+
+
+def _signature_data(file_field):
     if not file_field:
         return None
     try:
-        return Path(file_field.path).resolve().as_uri()
-    except (NotImplementedError, ValueError, AttributeError):
-        pass
-    try:
-        return file_field.url
-    except Exception:  # pragma: no cover - storage misconfig shouldn't break render
-        return None
+        with file_field.storage.open(file_field.name, "rb") as source:
+            payload = source.read(5 * 1024 * 1024 + 1)
+        if len(payload) > 5 * 1024 * 1024:
+            raise ValueError("Signature file is too large")
+        with Image.open(BytesIO(payload)) as uploaded:
+            if uploaded.width * uploaded.height > 20_000_000:
+                raise ValueError("Signature dimensions are too large")
+            signature = ImageOps.exif_transpose(uploaded).convert("RGBA")
+        background = Image.new("RGBA", signature.size, "white")
+        visible = Image.alpha_composite(background, signature).convert("RGB")
+        difference = ImageChops.difference(visible, Image.new("RGB", signature.size, "white"))
+        mask = difference.convert("L").point(lambda value: 255 if value > 12 else 0)
+        bounds = mask.getbbox()
+        if not bounds:
+            raise ValueError("Signature image is blank")
+        signature = signature.crop(bounds)
+        signature.thumbnail((1600, 800), Image.Resampling.LANCZOS)
+        output = BytesIO()
+        signature.save(output, format="PNG")
+        return "data:image/png;base64," + b64encode(output.getvalue()).decode("ascii")
+    except Exception as error:
+        raise CertificateSignatureError(
+            "تصویر امضای کارشناس یا صادرکننده قابل خواندن نیست یا خالی است. "
+            "امضا را در پروفایل دوباره بارگذاری کنید و صدور را تکرار کنید."
+        ) from error
 
 
 def _build_context(inspection_request, issued_by=None) -> dict:
@@ -79,10 +101,10 @@ def _build_context(inspection_request, issued_by=None) -> dict:
         # Only *raised* defects are listed on the certificate (all must be fixed
         # for issuance to be permitted, per the gating rule).
         "defects": get_flagged_defects(report) if report else [],
-        "expert_signature_url": _safe_url(
+        "expert_signature_url": _signature_data(
             getattr(expert, "signature_image", None)
         ),
-        "ceo_signature_url": _safe_url(
+        "ceo_signature_url": _signature_data(
             getattr(issued_by, "signature_image", None)
         ),
     }

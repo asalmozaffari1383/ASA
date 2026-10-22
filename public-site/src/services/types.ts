@@ -12,6 +12,10 @@ export interface PublicConfig {
   stage_1_amount: string;
   stage_2_amount: string;
   ceo_card_number: string;
+  ceo_account_number: string;
+  ceo_iban: string;
+  ceo_account_holder: string;
+  updated_at: string;
   /** When true, the advance-payment receipt is optional on submission. */
   allow_inspection_without_advance: boolean;
 }

@@ -1,0 +1,55 @@
+name: asa-mail
+services:
+  mailserver:
+    image: mailserver/docker-mailserver:16.0.1@sha256:d0fe7668defe157aad57ea31b1707ad1e2fb57d7a91bdf17cbdf876549946c86
+    hostname: mx1.asaeng.org
+    env_file: mailserver.env
+    ports:
+      - "25:25"
+      - "465:465"
+      - "587:587"
+      - "993:993"
+    volumes:
+      - ./data:/var/mail
+      - ./state:/var/mail-state
+      - ./logs:/var/log/mail
+      - ./config:/tmp/docker-mailserver
+      - ./tls:/etc/asa-mail-tls:ro
+      - /etc/localtime:/etc/localtime:ro
+    cap_add:
+      - NET_ADMIN
+    networks:
+      default:
+        aliases:
+          - mx1.asaeng.org
+    mem_limit: 768m
+    restart: unless-stopped
+    stop_grace_period: 1m
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"
+  webmail:
+    image: roundcube/roundcubemail:1.6.20-apache@sha256:e2323d27ffb7572f6420d732253dfb21ccf7143cd08d3239c759e2e5795709df
+    environment:
+      ROUNDCUBEMAIL_DEFAULT_HOST: ssl://mx1.asaeng.org
+      ROUNDCUBEMAIL_DEFAULT_PORT: "993"
+      ROUNDCUBEMAIL_SMTP_SERVER: tls://mx1.asaeng.org
+      ROUNDCUBEMAIL_SMTP_PORT: "587"
+      ROUNDCUBEMAIL_DB_TYPE: sqlite
+      ROUNDCUBEMAIL_USERNAME_DOMAIN: asaeng.org
+      ROUNDCUBEMAIL_UPLOAD_MAX_FILESIZE: 15M
+      ROUNDCUBEMAIL_PLUGINS: archive,zipdownload
+    ports:
+      - "127.0.0.1:8088:80"
+    volumes:
+      - ./webmail-db:/var/roundcube/db
+      - ./webmail-config:/var/roundcube/config:ro
+    mem_limit: 256m
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: 10m
+        max-file: "3"

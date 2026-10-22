@@ -1,0 +1,21 @@
+services:
+  bot:
+    profiles: ["bot"]
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
+    restart: unless-stopped
+    environment:
+      BALE_BOT_TOKEN: ${BALE_BOT_TOKEN:-}
+      BACKEND_API_URL: ${BALE_BACKEND_API_URL:-https://asaeng.org/api}
+      PUBLIC_SITE_URL: https://asaeng.org
+      BOT_STATE_DIR: /app/state
+    volumes:
+      - bot_state:/app/state
+    depends_on:
+      - web
+
+volumes:
+  bot_state:
