@@ -143,6 +143,12 @@ class InspectionRequest(models.Model):
     )
 
     # --- Attachments ------------------------------------------------------
+    certificate_description = models.TextField(blank=True, verbose_name=_("متن توضیحات گواهی"))
+    certificate_number = models.CharField(max_length=80, blank=True, verbose_name=_("شماره گواهی"))
+    certificate_usage_type = models.CharField(max_length=255, blank=True, verbose_name=_("نوع تصرف"))
+    certificate_attachment = models.CharField(max_length=255, blank=True, verbose_name=_("پیوست گواهی"))
+    certificate_issued_at = models.DateTimeField(null=True, blank=True, verbose_name=_("زمان صدور گواهی"))
+
     deed_file = models.FileField(
         upload_to="requests/deeds/",
         null=True,

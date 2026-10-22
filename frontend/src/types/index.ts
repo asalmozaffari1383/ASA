@@ -140,5 +140,10 @@ export interface StaffRequestDetail {
   payments: FinancialRecord[];
   report: InspectionReport | null;
   certificate_url: string | null;
+  certificate_description: string;
+  certificate_default_description: string;
+  certificate_number: string;
+  certificate_usage_type: string;
+  certificate_attachment: string;
   [key: string]: unknown;
 }

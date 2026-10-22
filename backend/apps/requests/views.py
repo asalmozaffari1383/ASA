@@ -1,6 +1,8 @@
 """API views for the inspection-request lifecycle."""
 
 from django.http import HttpResponse
+from django.db import transaction
+from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
@@ -27,6 +29,7 @@ from .serializers import (
     _APPLICANT_FIELDS,
     _SYSTEM_STATUS_FIELDS,
     BaleCreateSerializer,
+    CertificateIssueSerializer,
     FinalPaymentSerializer,
     FixUploadSerializer,
     PublicSubmitSerializer,
@@ -348,7 +351,9 @@ class CeoCertificateViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        force = str(request.data.get("force", "")).lower() in ("true", "1")
+        issuance = CertificateIssueSerializer(data=request.data)
+        issuance.is_valid(raise_exception=True)
+        force = issuance.validated_data.get("force", False)
         if not readiness["payment_approved"] and not force:
             return Response(
                 {
@@ -360,8 +365,17 @@ class CeoCertificateViewSet(
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+        from apps.certificates.content import DEFAULT_DESCRIPTION
+
+        fields = ["certificate_description", "certificate_number", "certificate_usage_type", "certificate_attachment"]
+        for field in fields:
+            setattr(instance, field, issuance.validated_data.get(field, getattr(instance, field)))
+        instance.certificate_description = instance.certificate_description.strip() or DEFAULT_DESCRIPTION
+        instance.certificate_issued_at = timezone.now()
         certificate_url = build_certificate(instance, issued_by=request.user)
-        instance = transition_to(instance, InspectionRequest.Status.COMPLETED)
+        with transaction.atomic():
+            instance.save(update_fields=[*fields, "certificate_issued_at"])
+            instance = transition_to(instance, InspectionRequest.Status.COMPLETED)
         return Response({
             "detail": "گواهی‌نامه با موفقیت صادر شد.",
             "status": instance.status,

@@ -1,6 +1,7 @@
 """Certificate issuance guardrail tests (Part 3 §4)."""
 
 import tempfile
+from unittest.mock import patch
 
 from django.core.files.storage import default_storage
 from django.test import override_settings
@@ -10,6 +11,8 @@ from rest_framework.test import APITestCase
 
 from apps.financials.models import FinancialRecord
 from apps.requests.models import InspectionRequest
+from apps.certificates.content import DEFAULT_DESCRIPTION
+from apps.certificates.services import render_certificate_html
 from .factories import make_payment, make_report, make_request, make_user
 
 _TMP_MEDIA = tempfile.mkdtemp(prefix="asa-test-media-")
@@ -103,3 +106,50 @@ class CertificateGatingTests(APITestCase):
         self.assertTrue(default_storage.exists(path))
         with default_storage.open(path, "rb") as fh:
             self.assertEqual(fh.read(5), b"%PDF-")
+
+    def test_custom_content_persisted_and_escaped(self):
+        make_report(self.request)
+        make_payment(self.request, FinancialRecord.Stage.STAGE_2, approved=True)
+        description = "توضیحات اختصاصی مجموعه\nبند اول\n<script>alert(1)</script>"
+        response = self._issue(
+            certificate_description=description,
+            certificate_number="1405/265",
+            certificate_usage_type="انباری",
+            certificate_attachment="ندارد",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.request.refresh_from_db()
+        self.assertEqual(self.request.certificate_description, description)
+        self.assertEqual(self.request.certificate_number, "1405/265")
+        self.assertIsNotNone(self.request.certificate_issued_at)
+        html = render_certificate_html(self.request, self.issuer)
+        self.assertIn("توضیحات اختصاصی مجموعه", html)
+        self.assertIn("انباری", html)
+        self.assertIn("۱۴۰۵/۲۶۵", html)
+        self.assertIn("&lt;script&gt;", html)
+        self.assertNotIn("<script>", html)
+
+    def test_empty_description_uses_default(self):
+        make_report(self.request)
+        response = self._issue(force="true", certificate_description="  ")
+        self.assertEqual(response.status_code, 200)
+        self.request.refresh_from_db()
+        self.assertEqual(self.request.certificate_description, DEFAULT_DESCRIPTION)
+
+    def test_invalid_content_cannot_complete_request(self):
+        make_report(self.request)
+        response = self._issue(force="true", certificate_number="x" * 81)
+        self.assertEqual(response.status_code, 400)
+        self.request.refresh_from_db()
+        self.assertEqual(self.request.status, InspectionRequest.Status.UNDER_REVIEW)
+        self.assertIsNone(self.request.certificate_issued_at)
+
+    @patch("apps.requests.views.build_certificate", side_effect=RuntimeError("storage unavailable"))
+    def test_failed_generation_does_not_persist_issuance(self, build):
+        make_report(self.request)
+        with self.assertRaises(RuntimeError):
+            self._issue(force="true", certificate_description="متن جدید")
+        self.request.refresh_from_db()
+        self.assertEqual(self.request.certificate_description, "")
+        self.assertIsNone(self.request.certificate_issued_at)
+        self.assertEqual(self.request.status, InspectionRequest.Status.UNDER_REVIEW)

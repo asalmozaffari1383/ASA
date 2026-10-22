@@ -160,10 +160,15 @@ export const getCertificateReadiness = (id: string, scope?: "pending" | "all") =
 
 // ``force`` overrides the soft "receipt not yet approved" check (after the admin
 // confirms the warning). Hard blockers are still enforced server-side.
-export const issueCertificate = (id: string, force = false) =>
+export const issueCertificate = (id: string, force = false, content: {
+  certificate_description: string;
+  certificate_number: string;
+  certificate_usage_type: string;
+  certificate_attachment: string;
+}) =>
   api.post<{ certificate_url: string }>(
     `/ceo/certificate-requests/${id}/issue-certificate/`,
-    force ? { force: "true" } : {},
+    { ...content, force },
   );
 
 export const updateDefects = (requestId: string, flags: Record<string, boolean>) =>

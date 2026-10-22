@@ -11,18 +11,43 @@ the rest of the business logic / tests) never requires the Pango/Cairo native
 libraries to be present.
 """
 
+from base64 import b64encode
+from functools import lru_cache
+from io import BytesIO
+from pathlib import Path
+from urllib.parse import urlencode
+
+import qrcode
+import qrcode.image.svg
+
 from django.core.files.base import ContentFile
 from django.core.files.storage import default_storage
 from django.template.loader import render_to_string
 from django.utils import timezone
 
 from apps.inspections.services import get_flagged_defects
+from apps.requests.pdf import _display, _document_assets, _jalali_date
+
+from .content import DEFAULT_DESCRIPTION
+
+
+@lru_cache(maxsize=1)
+def _certificate_assets():
+    directory = Path(__file__).with_name("assets")
+    return {
+        name: "data:image/png;base64," + b64encode((directory / f"{name}.png").read_bytes()).decode("ascii")
+        for name in ("letterhead", "footer")
+    }
 
 
 def _safe_url(file_field):
     """Return a file field's URL, or ``None`` if unset/unavailable."""
     if not file_field:
         return None
+    try:
+        return Path(file_field.path).resolve().as_uri()
+    except (NotImplementedError, ValueError, AttributeError):
+        pass
     try:
         return file_field.url
     except Exception:  # pragma: no cover - storage misconfig shouldn't break render
@@ -32,12 +57,25 @@ def _safe_url(file_field):
 def _build_context(inspection_request, issued_by=None) -> dict:
     report = getattr(inspection_request, "report", None)
     expert = report.expert if report else None
+    issued_at = inspection_request.certificate_issued_at
+    description = _display(inspection_request.certificate_description or DEFAULT_DESCRIPTION)
+    tracking_url = "https://asaeng.org/track?" + urlencode({"code": inspection_request.tracking_code})
+    qr_buffer = BytesIO()
+    qrcode.make(tracking_url, image_factory=qrcode.image.svg.SvgPathImage).save(qr_buffer)
     return {
         "req": inspection_request,
         "report": report,
         "expert": expert,
         "issued_by": issued_by,
-        "issue_date": timezone.localdate(),
+        "issue_date": _jalali_date(timezone.localtime(issued_at).date() if issued_at else timezone.localdate()),
+        "number": _display(inspection_request.certificate_number or inspection_request.tracking_code),
+        "phone": _display(inspection_request.ceo_phone),
+        "postal_code": _display(inspection_request.postal_code),
+        "description_intro": description.splitlines()[0] if description.splitlines() else "",
+        "description_items": [line.strip() for line in description.splitlines()[1:] if line.strip()],
+        "assets": {**_document_assets(), **_certificate_assets()},
+        "tracking_url": tracking_url,
+        "qr_url": "data:image/svg+xml;base64," + b64encode(qr_buffer.getvalue()).decode("ascii"),
         # Only *raised* defects are listed on the certificate (all must be fixed
         # for issuance to be permitted, per the gating rule).
         "defects": get_flagged_defects(report) if report else [],

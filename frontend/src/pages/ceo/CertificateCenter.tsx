@@ -100,6 +100,11 @@ function RequestDetail({ id, scope, onCompleted }: { id: string; scope: Scope; o
   const [detail, setDetail] = useState<StaffRequestDetail | null>(null);
   const [readiness, setReadiness] = useState<CertificateReadiness | null>(null);
   const [busy, setBusy] = useState(false);
+  const [description, setDescription] = useState("");
+  const [number, setNumber] = useState("");
+  const [usageType, setUsageType] = useState("");
+  const [attachment, setAttachment] = useState("");
+  const [issueError, setIssueError] = useState("");
 
   const load = async () => {
     const [d, r] = await Promise.all([
@@ -108,6 +113,10 @@ function RequestDetail({ id, scope, onCompleted }: { id: string; scope: Scope; o
     ]);
     setDetail(d.data);
     setReadiness(r.data);
+    setDescription(d.data.certificate_description || d.data.certificate_default_description);
+    setNumber(d.data.certificate_number || "");
+    setUsageType(d.data.certificate_usage_type || "");
+    setAttachment(d.data.certificate_attachment || "");
   };
   useEffect(() => {
     load();
@@ -141,10 +150,18 @@ function RequestDetail({ id, scope, onCompleted }: { id: string; scope: Scope; o
       force = true;
     }
     setBusy(true);
+    setIssueError("");
     try {
-      const { data } = await issueCertificate(id, force);
+      const { data } = await issueCertificate(id, force, {
+        certificate_description: description,
+        certificate_number: number,
+        certificate_usage_type: usageType,
+        certificate_attachment: attachment,
+      });
       if (data.certificate_url) window.open(data.certificate_url, "_blank");
       onCompleted();
+    } catch {
+      setIssueError("صدور گواهی انجام نشد. اتصال و شرایط صدور را بررسی و دوباره تلاش کنید.");
     } finally {
       setBusy(false);
     }
@@ -191,7 +208,27 @@ function RequestDetail({ id, scope, onCompleted }: { id: string; scope: Scope; o
         </span>
       </div>
 
-      {/* Certificate guardrail */}
+      <div className="card space-y-4">
+        <h3 className="font-bold text-slate-800">محتوای گواهی‌نامه</h3>
+        <p className="text-sm text-slate-500">متن را متناسب با نتیجه بازرسی بررسی و ویرایش کنید. هر بند را در یک خط جدا بنویسید؛ اطلاعات همراه گواهی صادرشده ذخیره می‌شود.</p>
+        <div className="grid gap-4 sm:grid-cols-3">
+          <label className="space-y-2 text-sm">شماره گواهی
+            <input className="w-full rounded-lg border border-slate-200 p-2" value={number} onChange={(event) => setNumber(event.target.value)} placeholder={detail.tracking_code} maxLength={80} disabled={isIssued || busy} />
+          </label>
+          <label className="space-y-2 text-sm">نوع تصرف
+            <input className="w-full rounded-lg border border-slate-200 p-2" value={usageType} onChange={(event) => setUsageType(event.target.value)} placeholder="مثلاً انباری" maxLength={255} disabled={isIssued || busy} />
+          </label>
+          <label className="space-y-2 text-sm">پیوست
+            <input className="w-full rounded-lg border border-slate-200 p-2" value={attachment} onChange={(event) => setAttachment(event.target.value)} placeholder="ندارد" maxLength={255} disabled={isIssued || busy} />
+          </label>
+        </div>
+        <label className="block space-y-2 text-sm">متن توضیحات و شرایط گواهی
+          <textarea className="w-full rounded-xl border border-slate-200 p-3 leading-8" rows={12} value={description} onChange={(event) => setDescription(event.target.value)} maxLength={20000} disabled={isIssued || busy} />
+        </label>
+        {!isIssued && <button type="button" className="text-sm text-brand-700 underline" disabled={busy} onClick={() => setDescription(detail.certificate_default_description)}>بازگرداندن متن پیش‌فرض</button>}
+        {issueError && <p role="alert" className="text-sm text-red-600">{issueError}</p>}
+      </div>
+
       {isIssued ? (
         <div className="card flex flex-wrap items-center justify-between gap-3">
           <span className="rounded-full bg-green-50 px-3 py-1 text-sm text-green-700">

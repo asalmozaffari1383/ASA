@@ -339,6 +339,14 @@ class StaffRequestListSerializer(serializers.ModelSerializer):
         read_only_fields = fields
 
 
+class CertificateIssueSerializer(serializers.Serializer):
+    force = serializers.BooleanField(default=False)
+    certificate_description = serializers.CharField(required=False, allow_blank=True, max_length=20000)
+    certificate_number = serializers.CharField(required=False, allow_blank=True, max_length=80)
+    certificate_usage_type = serializers.CharField(required=False, allow_blank=True, max_length=255)
+    certificate_attachment = serializers.CharField(required=False, allow_blank=True, max_length=255)
+
+
 class StaffRequestDetailSerializer(serializers.ModelSerializer):
     """Full request view with nested report + payments for CEO verification.
 
@@ -350,6 +358,7 @@ class StaffRequestDetailSerializer(serializers.ModelSerializer):
     payments = FinancialRecordSerializer(many=True, read_only=True)
     report = InspectionReportSerializer(read_only=True)
     certificate_url = serializers.SerializerMethodField()
+    certificate_default_description = serializers.SerializerMethodField()
 
     class Meta:
         model = InspectionRequest
@@ -357,8 +366,15 @@ class StaffRequestDetailSerializer(serializers.ModelSerializer):
                   "request_date", *_APPLICANT_FIELDS, *_SYSTEM_STATUS_FIELDS,
                   "deed_file", "lease_file", "bale_form_photo",
                   "postal_code_document",
-                  "payments", "report", "certificate_url")
+                  "payments", "report", "certificate_url", "certificate_description",
+                  "certificate_number", "certificate_usage_type", "certificate_attachment",
+                  "certificate_issued_at", "certificate_default_description")
         read_only_fields = fields
 
     def get_certificate_url(self, instance):
         return certificate_url_for(instance)
+
+    def get_certificate_default_description(self, instance):
+        from apps.certificates.content import DEFAULT_DESCRIPTION
+
+        return DEFAULT_DESCRIPTION
