@@ -1,3 +1,4 @@
+import { JalaliDateInput } from "../../../components/ui/form/JalaliDateInput";
 import { TextInput } from "../../../components/ui/form/TextInput";
 
 export function CompanyInfoStep() {
@@ -43,11 +44,9 @@ export function CompanyInfoStep() {
         label="نام و نام خانوادگی معرف"
         placeholder="اختیاری"
       />
-      <TextInput
+      <JalaliDateInput
         name="requestDate"
         label="تاریخ درخواست"
-        type="date"
-        dir="ltr"
         className="sm:col-span-2 sm:max-w-xs"
       />
     </div>

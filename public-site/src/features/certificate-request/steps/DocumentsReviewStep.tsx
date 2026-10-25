@@ -1,3 +1,4 @@
+import { formatJalaliDate } from "../../../utils/jalaliDate";
 import type { ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import { FileUpload } from "../../../components/ui/form/FileUpload";
@@ -109,7 +110,7 @@ export function DocumentsReviewStep({ receiptRequired = true }: { receiptRequire
           <ReviewRow label="نوع فعالیت" value={values.activityType} />
           <ReviewRow label="تماس جایگزین" value={values.alternatePhone} />
           <ReviewRow label="معرف" value={values.referrerName} />
-          <ReviewRow label="تاریخ درخواست" value={values.requestDate} />
+          <ReviewRow label="تاریخ درخواست" value={formatJalaliDate(values.requestDate)} />
         </ReviewGroup>
 
         <ReviewGroup title="مجموعه و ملک">

@@ -8,8 +8,8 @@ from rest_framework.permissions import AllowAny
 
 from apps.common.permissions import IsCEO
 
-from .models import CompanyPartner, ContactSettings, ServiceCard
-from .serializers import CompanyPartnerSerializer, ContactSettingsSerializer, ServiceCardSerializer
+from .models import CompanyPartner, ContactSettings, ServiceCard, PageContent
+from .serializers import CompanyPartnerSerializer, ContactSettingsSerializer, ServiceCardSerializer, PageContentSerializer
 
 
 class PublicServiceList(generics.ListAPIView):
@@ -83,3 +83,25 @@ class PublicContactSettings(generics.RetrieveAPIView):
 class ManageContactSettings(PublicContactSettings, generics.RetrieveUpdateAPIView):
     permission_classes = [IsCEO]
     http_method_names = ["get", "patch", "head", "options"]
+
+
+class PublicPageContent(PublicContactSettings):
+    serializer_class = PageContentSerializer
+
+    def get_object(self):
+        return PageContent.load()
+
+
+class ManagePageContent(PublicPageContent, generics.UpdateAPIView):
+    def handle_exception(self, exc):
+        if isinstance(exc, (ClientError, BotoCoreError)):
+            logging.getLogger(__name__).error("Page image storage failure (%s)", type(exc).__name__)
+            exc = StorageUnavailable()
+        return super().handle_exception(exc)
+
+    permission_classes = [IsCEO]
+    http_method_names = ["get", "patch", "head", "options"]
+
+    @transaction.atomic
+    def perform_update(self, serializer):
+        serializer.save()

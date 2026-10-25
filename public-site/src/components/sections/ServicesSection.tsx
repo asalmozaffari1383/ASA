@@ -1,3 +1,4 @@
+import { usePageContent } from "../../services/pageContent";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { apiClient } from "../../services/apiClient";
@@ -6,6 +7,7 @@ import { AnimatedSection } from "../ui/AnimatedSection";
 import { SectionHeading } from "../ui/SectionHeading";
 
 export function ServicesSection() {
+  const { content: text } = usePageContent();
   const [services, setServices] = useState<PublicService[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -28,8 +30,8 @@ export function ServicesSection() {
     <section id="services" className="brand-surface px-5 py-20 sm:px-8 sm:py-24">
       <div className="mx-auto max-w-7xl">
         <AnimatedSection className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
-          <SectionHeading eyebrow="تخصص ما، اطمینان شما" title="ایمنی، در تمام جزئیات" align="start" />
-          <p className="max-w-md description-copy text-ink">راهکارهای تخصصی برای شناخت ریسک، حفاظت از سرمایه و ساختن محیط کاری که به آن اطمینان دارید.</p>
+          <SectionHeading eyebrow={text.services_eyebrow} title={text.services_title} align="start" />
+          <p className="max-w-md whitespace-pre-line description-copy text-ink">{text.services_description}</p>
         </AnimatedSection>
         {error ? (
           <div role="alert" className="mt-10 rounded-2xl border border-ink/10 bg-white p-8 text-sm text-steel-dark">
@@ -50,7 +52,7 @@ export function ServicesSection() {
                   </div>
                   <div className="flex flex-1 flex-col px-6 pb-6 pt-5">
                     <h3 className="font-display text-lg font-bold leading-8 text-ink">{service.title}</h3>
-                    <p className="mt-3 description-copy text-ink">{service.description}</p>
+                    <p className="mt-3 whitespace-pre-line description-copy text-ink">{service.description}</p>
                     <ul className="mb-6 mt-5 flex flex-wrap gap-2">{service.specs.map((spec, specIndex) => <li key={specIndex} className="rounded-md bg-accent-soft px-2.5 py-1.5 text-xs font-bold text-accent-dark">{spec}</li>)}</ul>
                     <span className="mt-auto flex items-center justify-between gap-3 border-t border-accent/25 pt-5 text-sm font-bold text-accent-dark">
                       <span>معرفی و جزئیات خدمت</span>

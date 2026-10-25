@@ -1,9 +1,11 @@
+import { usePageContent } from "../../services/pageContent";
 import { useEffect, useState } from "react";
 import { apiClient } from "../../services/apiClient";
 import type { CompanyPartner } from "../../types/website";
 import { SectionHeading } from "../ui/SectionHeading";
 
 export function ClientsSection() {
+  const { content: text } = usePageContent();
   const [partners, setPartners] = useState<CompanyPartner[]>([]);
   const [error, setError] = useState(false);
   const [attempt, setAttempt] = useState(0);
@@ -28,7 +30,7 @@ export function ClientsSection() {
   return (
     <section id="clients" className="border-y border-ink/10 bg-white px-5 py-16 sm:px-8 sm:py-20">
       <div className="mx-auto max-w-7xl">
-        <SectionHeading eyebrow="همراهان آسا" title="شرکت‌هایی که به ما اعتماد کرده‌اند" />
+        <SectionHeading eyebrow={text.clients_eyebrow} title={text.clients_title} />
         {error ? (
           <p role="status" className="mt-8 text-center text-sm leading-8 text-steel-dark">
             دریافت لوگوی همکاران ممکن نشد.

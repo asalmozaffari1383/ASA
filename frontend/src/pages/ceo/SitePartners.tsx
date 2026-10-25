@@ -22,6 +22,8 @@ export function SitePartners() {
   const [fileKey, setFileKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const busy = saving || deletingId !== null;
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
@@ -62,6 +64,28 @@ export function SitePartners() {
     setDirty(false);
     setError("");
     setMessage("");
+  }
+
+  async function removePartner(partner: CompanyPartner) {
+    if (busy) return;
+    const warning = selectedId === partner.id && dirty ? " تغییرات ذخیره‌نشدهٔ این شرکت نیز کنار گذاشته می‌شوند." : "";
+    if (!window.confirm(`شرکت «${partner.name}» و لوگوی آن از فهرست همکاران حذف شود؟ این کار قابل بازگشت نیست.${warning}`)) return;
+    setDeletingId(partner.id);
+    setError("");
+    setMessage("");
+    try {
+      await api.delete(`/ceo/site-partners/${partner.id}/`);
+      setPartners((current) => current.filter((item) => item.id !== partner.id));
+      if (selectedId === partner.id) {
+        setSelectedId(null);
+        setDraft({ ...emptyPartner, position: Math.max(0, ...partners.filter((item) => item.id !== partner.id).map((item) => item.position)) + 1 });
+        setFile(null);
+        setFileKey((key) => key + 1);
+        setDirty(false);
+      }
+      setMessage("شرکت همکار حذف شد. با تازه‌سازی صفحهٔ اصلی، لوگوی آن دیگر نمایش داده نمی‌شود.");
+    } catch (failure) { setError(errorMessage(failure)); }
+    finally { setDeletingId(null); }
   }
 
   function change(values: Partial<typeof draft>) {
@@ -106,20 +130,26 @@ export function SitePartners() {
         </div>
         <a className="btn-ghost" href={`${import.meta.env.VITE_PUBLIC_SITE_URL ?? "http://localhost:5174"}/#clients`} target="_blank" rel="noreferrer">مشاهده در سایت ↗</a>
       </div>
-      {error && <div role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}<button type="button" disabled={loading || saving} onClick={() => setAttempt((value) => value + 1)} className="mr-3 underline">دریافت دوبارهٔ فهرست</button></div>}
+      {error && <div role="alert" className="rounded-xl bg-red-50 p-4 text-sm text-red-700">{error}<button type="button" disabled={loading || busy} onClick={() => setAttempt((value) => value + 1)} className="mr-3 underline">دریافت دوبارهٔ فهرست</button></div>}
       {message && <p role="status" className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-800">{message}</p>}
       <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
         <aside className="space-y-3">
-          <button type="button" className="btn-primary w-full" onClick={() => selectPartner()} disabled={loading || saving}>+ افزودن شرکت همکار</button>
+          <button type="button" className="btn-primary w-full" onClick={() => selectPartner()} disabled={loading || busy}>+ افزودن شرکت همکار</button>
           {loading ? <p role="status" className="p-4 text-sm">در حال دریافت شرکت‌ها…</p> : partners.length === 0 ? <p className="rounded-xl border border-dashed border-slate-300 p-5 text-sm leading-7 text-slate-500">هنوز شرکتی اضافه نشده است. نام و لوگوی اولین شرکت را ثبت کنید.</p> : partners.map((partner) => (
-            <button type="button" key={partner.id} disabled={saving} onClick={() => selectPartner(partner)} className={`flex w-full items-center gap-3 rounded-xl border bg-white p-4 text-right transition ${selectedId === partner.id ? "border-brand-500 ring-1 ring-brand-200" : "border-slate-200 hover:border-slate-400"}`}>
-              <img src={partner.logo_url} alt="" className="h-12 w-14 shrink-0 object-contain" />
-              <span className="min-w-0"><span className="block break-words font-semibold">{partner.name}</span><span className="mt-2 block text-xs text-slate-500">ترتیب {partner.position.toLocaleString("fa-IR")} · {partner.is_active ? "منتشر شده" : "پنهان"}</span></span>
-            </button>
+            <div key={partner.id} className={`rounded-xl border bg-white p-4 transition ${selectedId === partner.id ? "border-brand-500 ring-1 ring-brand-200" : "border-slate-200"}`}>
+              <button type="button" disabled={busy} onClick={() => selectPartner(partner)} aria-label={`ویرایش ${partner.name}`} aria-pressed={selectedId === partner.id} className="flex w-full items-center gap-3 text-right">
+                <img src={partner.logo_url} alt="" className="h-12 w-14 shrink-0 object-contain" />
+                <span className="min-w-0"><span className="block break-words font-semibold">{partner.name}</span><span className="mt-2 block text-xs text-slate-500">ترتیب {partner.position.toLocaleString("fa-IR")} · {partner.is_active ? "منتشر شده" : "پنهان"}</span></span>
+              </button>
+              <div className="mt-4 flex flex-wrap gap-3 border-t border-slate-100 pt-3">
+                <button type="button" disabled={busy} onClick={() => selectPartner(partner)} aria-label={`ویرایش ${partner.name}`} className="btn-ghost">ویرایش</button>
+                <button type="button" disabled={busy} onClick={() => removePartner(partner)} aria-label={`حذف ${partner.name}`} className="rounded-xl border border-red-200 px-4 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-50">{deletingId === partner.id ? "در حال حذف…" : "حذف"}</button>
+              </div>
+            </div>
           ))}
         </aside>
         <form onSubmit={save} className="card">
-          <fieldset disabled={saving || loading} className="min-w-0 space-y-5">
+          <fieldset disabled={busy || loading} className="min-w-0 space-y-5">
             <h2 className="text-lg font-bold">{selectedId ? "ویرایش شرکت همکار" : "شرکت همکار جدید"}</h2>
             <label className="block"><span className="label">نام شرکت</span><input className="input" required maxLength={160} value={draft.name} onChange={(event) => change({ name: event.target.value })} /></label>
             <label className="block">
@@ -143,7 +173,7 @@ export function SitePartners() {
             <label className="block"><span className="label">ترتیب نمایش</span><input className="input" type="number" required min={0} max={2147483647} value={draft.position} onChange={(event) => change({ position: Number(event.target.value) })} /></label>
             <label className="flex items-center gap-2 text-sm font-medium"><input type="checkbox" checked={draft.is_active} onChange={(event) => change({ is_active: event.target.checked })} />نمایش این شرکت در سایت عمومی</label>
             <div className="flex flex-wrap items-center gap-4 border-t border-slate-100 pt-5">
-              <button className="btn-primary" disabled={loading || saving}>{saving ? "در حال ذخیره…" : "ذخیره تغییرات"}</button>
+              <button className="btn-primary" disabled={loading || busy}>{saving ? "در حال ذخیره…" : "ذخیره تغییرات"}</button>
               <span className="text-xs text-slate-500">{dirty ? "تغییرات ذخیره نشده" : ""}</span>
             </div>
           </fieldset>

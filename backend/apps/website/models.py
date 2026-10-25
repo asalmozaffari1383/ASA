@@ -2,6 +2,7 @@ from django.db import models
 from django.core.exceptions import ValidationError
 
 from apps.common.validators import validate_image
+from .page_defaults import default_page_content
 
 
 class ServiceCard(models.Model):
@@ -83,3 +84,15 @@ class ContactSettings(models.Model):
     class Meta:
         verbose_name = "تماس با ما"
         verbose_name_plural = "تماس با ما"
+
+
+class PageContent(models.Model):
+    content = models.JSONField(default=default_page_content)
+    hero_image = models.ImageField(upload_to="website/pages/", blank=True, null=True, validators=[validate_image])
+    about_image = models.ImageField(upload_to="website/pages/", blank=True, null=True, validators=[validate_image])
+    cta_image = models.ImageField(upload_to="website/pages/", blank=True, null=True, validators=[validate_image])
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def load(cls):
+        return cls.objects.get_or_create(pk=1)[0]

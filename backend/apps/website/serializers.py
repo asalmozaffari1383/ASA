@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import CompanyPartner, ContactSettings, ServiceCard
+from .models import CompanyPartner, ContactSettings, ServiceCard, PageContent
 
 
 class ServiceCardSerializer(serializers.ModelSerializer):
@@ -95,3 +95,89 @@ class ContactSettingsSerializer(serializers.ModelSerializer):
         model = ContactSettings
         fields = ["title", "subtitle", "services_title", "services", "links", "updated_at"]
         read_only_fields = ["updated_at"]
+
+
+class PillarSerializer(serializers.Serializer):
+    label = serializers.CharField(max_length=200)
+    detail = serializers.CharField(max_length=2000, allow_blank=True)
+
+
+class WorkflowStepSerializer(serializers.Serializer):
+    title = serializers.CharField(max_length=200)
+    description = serializers.CharField(max_length=2000, allow_blank=True)
+
+
+class PageTextSerializer(serializers.Serializer):
+    hero_eyebrow = serializers.CharField(max_length=300, allow_blank=True)
+    hero_title = serializers.CharField(max_length=300, allow_blank=True)
+    hero_subtitle = serializers.CharField(max_length=300, allow_blank=True)
+    hero_description = serializers.CharField(max_length=10000, allow_blank=True)
+    hero_button = serializers.CharField(max_length=300, allow_blank=True)
+    hero_image_alt = serializers.CharField(max_length=300, allow_blank=True)
+    about_eyebrow = serializers.CharField(max_length=300, allow_blank=True)
+    about_title = serializers.CharField(max_length=300, allow_blank=True)
+    about_description = serializers.CharField(max_length=10000, allow_blank=True)
+    about_description_extra = serializers.CharField(max_length=10000, allow_blank=True)
+    about_image_alt = serializers.CharField(max_length=300, allow_blank=True)
+    services_eyebrow = serializers.CharField(max_length=300, allow_blank=True)
+    services_title = serializers.CharField(max_length=300, allow_blank=True)
+    services_description = serializers.CharField(max_length=10000, allow_blank=True)
+    process_eyebrow = serializers.CharField(max_length=300, allow_blank=True)
+    process_title = serializers.CharField(max_length=300, allow_blank=True)
+    process_description = serializers.CharField(max_length=10000, allow_blank=True)
+    clients_eyebrow = serializers.CharField(max_length=300, allow_blank=True)
+    clients_title = serializers.CharField(max_length=300, allow_blank=True)
+    cta_eyebrow = serializers.CharField(max_length=300, allow_blank=True)
+    cta_title = serializers.CharField(max_length=300, allow_blank=True)
+    cta_subtitle = serializers.CharField(max_length=300, allow_blank=True)
+    cta_description = serializers.CharField(max_length=10000, allow_blank=True)
+
+    pillars = PillarSerializer(many=True, max_length=8, allow_empty=True)
+    workflow_steps = WorkflowStepSerializer(many=True, max_length=8, allow_empty=True)
+
+
+class PageContentSerializer(serializers.ModelSerializer):
+    content = serializers.JSONField()
+    hero_image_url = serializers.SerializerMethodField()
+    about_image_url = serializers.SerializerMethodField()
+    cta_image_url = serializers.SerializerMethodField()
+    clear_hero_image = serializers.BooleanField(write_only=True, required=False)
+    clear_about_image = serializers.BooleanField(write_only=True, required=False)
+    clear_cta_image = serializers.BooleanField(write_only=True, required=False)
+
+    class Meta:
+        model = PageContent
+        fields = ["content", "hero_image", "about_image", "cta_image", "hero_image_url", "about_image_url", "cta_image_url", "clear_hero_image", "clear_about_image", "clear_cta_image", "updated_at"]
+        read_only_fields = ["updated_at"]
+
+    def validate_content(self, value):
+        from .page_defaults import default_page_content
+        if not isinstance(value, dict):
+            raise serializers.ValidationError("محتوا باید شامل عنوان‌ها و توضیحات باشد.")
+        if set(value) - set(default_page_content()):
+            raise serializers.ValidationError("بخش ناشناخته در محتوا وجود دارد.")
+        merged = {**default_page_content(), **(self.instance.content if self.instance else {}), **value}
+        serializer = PageTextSerializer(data=merged)
+        serializer.is_valid(raise_exception=True)
+        return dict(serializer.validated_data)
+
+    def validate(self, attrs):
+        for field in ("hero_image", "about_image", "cta_image"):
+            if attrs.get("clear_" + field) and attrs.get(field):
+                raise serializers.ValidationError("حذف و بارگذاری یک تصویر را هم‌زمان انتخاب نکنید.")
+        return attrs
+
+    def update(self, instance, validated_data):
+        for field in ("hero_image", "about_image", "cta_image"):
+            if validated_data.pop("clear_" + field, False):
+                validated_data[field] = None
+        return super().update(instance, validated_data)
+
+    def get_hero_image_url(self, obj):
+        return obj.hero_image.url if obj.hero_image else "/images/hero.jpg"
+
+    def get_about_image_url(self, obj):
+        return obj.about_image.url if obj.about_image else "/images/service-vessels.jpg"
+
+    def get_cta_image_url(self, obj):
+        return obj.cta_image.url if obj.cta_image else "/images/cta-firefighter.jpg"
