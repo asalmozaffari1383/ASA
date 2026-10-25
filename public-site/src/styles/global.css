@@ -2,102 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ---------------------------------------------------------------------------
-   Type system — self-hosted (no runtime CDN dependency).
-   Display  : Estedad   — industrial Persian grotesque; headlines, numerals.
-   Body     : Vazirmatn — neutral, professional grotesque for reading text.
-   --------------------------------------------------------------------------- */
-
+/* B Nazanin, matching the reference website; served locally. */
 @font-face {
-  font-family: "Estedad";
-  src: url("../assets/fonts/Estedad-Medium.woff2") format("woff2");
-  font-weight: 500;
+  font-family: "B Nazanin";
+  src: url("../assets/fonts/BNazanin-Regular.woff2") format("woff2");
+  font-weight: 100 600;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Estedad";
-  src: url("../assets/fonts/Estedad-SemiBold.woff2") format("woff2");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Estedad";
-  src: url("../assets/fonts/Estedad-Bold.woff2") format("woff2");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Estedad";
-  src: url("../assets/fonts/Estedad-ExtraBold.woff2") format("woff2");
-  font-weight: 800;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Estedad";
-  src: url("../assets/fonts/Estedad-Black.woff2") format("woff2");
-  font-weight: 900;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Vazirmatn";
-  src: url("../assets/fonts/Vazirmatn-Regular.woff2") format("woff2");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Vazirmatn";
-  src: url("../assets/fonts/Vazirmatn-Medium.woff2") format("woff2");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Vazirmatn";
-  src: url("../assets/fonts/Vazirmatn-SemiBold.woff2") format("woff2");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Vazirmatn";
-  src: url("../assets/fonts/Vazirmatn-Bold.woff2") format("woff2");
-  font-weight: 700;
+  font-family: "B Nazanin";
+  src: url("../assets/fonts/BNazanin-Bold.woff2") format("woff2");
+  font-weight: 700 900;
   font-style: normal;
   font-display: swap;
 }
 
 html {
   scroll-behavior: smooth;
-  scroll-padding-top: 130px;
+  scroll-padding-top: 176px;
 }
 
 body {
   direction: rtl;
   margin: 0;
-  background-color: #f4f7fa;
-  color: #12283f;
-  font-family: Vazirmatn, Vazir, IRANSans, system-ui, sans-serif;
+  background-color: #f3f9fd;
+  color: #123658;
+  font-family: "B Nazanin", Tahoma, serif;
+  font-size: 20px;
+  line-height: 1.85;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
 
+/* Readable explanatory copy with the actual bold Persian font face. */
+.description-copy {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.95;
+}
+
+@media (min-width: 640px) {
+  .description-copy {
+    font-size: 24px;
+  }
+}
+
 /* Impact numerals and stats — the heaviest, most engineered voice. */
 .font-heavy {
-  font-family: Estedad, Vazirmatn, system-ui, sans-serif;
+  font-family: "B Nazanin", Tahoma, serif;
   font-weight: 900;
 }
 
@@ -153,7 +107,7 @@ body {
 
 /* Latin technical data (certificate IDs) in a precise mono setting. */
 .font-data {
-  font-family: ui-monospace, "SFMono-Regular", "Menlo", "Consolas", monospace;
+  font-family: "B Nazanin", Tahoma, serif;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.02em;
 }
@@ -170,4 +124,28 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+/* Cool blue surfaces and diagonal details echo the geometry of the ASA logo. */
+.brand-surface {
+  background:
+    linear-gradient(135deg, transparent 68%, rgba(105, 197, 237, 0.09) 68%, transparent 90%),
+    radial-gradient(ellipse at top right, #e0f3fc, transparent 58%),
+    #f3f9fd;
+}
+
+.brand-card {
+  box-shadow: 0 8px 28px -20px rgba(9, 103, 155, 0.35);
+}
+
+.brand-photo {
+  border: 1px solid rgba(105, 197, 237, 0.5);
+  box-shadow: 16px 16px 0 -4px #d7effa;
+}
+
+.brand-footer {
+  border-top: 4px solid #69c5ed;
+  background-image:
+    linear-gradient(145deg, transparent 64%, rgba(105, 197, 237, 0.06) 64%, transparent 88%),
+    linear-gradient(110deg, #082742, #103d60);
 }

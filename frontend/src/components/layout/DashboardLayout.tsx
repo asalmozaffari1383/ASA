@@ -44,6 +44,7 @@ export function DashboardLayout() {
             ))}
             {user?.role === "ceo" && <NavLink to="/panel/ceo/site-content" className={({ isActive }) => `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition ${isActive ? "bg-brand-50 text-brand-700" : "text-slate-500 hover:bg-slate-100"}`}>محتوای سایت</NavLink>}
             {user?.role === "ceo" && <NavLink to="/panel/ceo/site-partners" className={({ isActive }) => `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition ${isActive ? "bg-brand-50 text-brand-700" : "text-slate-500 hover:bg-slate-100"}`}>لوگوی همکاران</NavLink>}
+            {user?.role === "ceo" && <NavLink to="/panel/ceo/site-contact" className={({ isActive }) => `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition ${isActive ? "bg-brand-50 text-brand-700" : "text-slate-500 hover:bg-slate-100"}`}>تماس با ما</NavLink>}
             {user?.role === "ceo" && <NavLink to="/panel/ceo/bot-settings" className={({ isActive }) => `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm transition ${isActive ? "bg-brand-50 text-brand-700" : "text-slate-500 hover:bg-slate-100"}`}>تنظیمات بات</NavLink>}
           </nav>
           <div className="flex items-center gap-3">

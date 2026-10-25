@@ -10,7 +10,7 @@ const pillars = [
 
 export function ConsultingSection() {
   return (
-    <section id="about" className="bg-mist px-5 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
+    <section id="about" className="brand-surface px-5 py-24 sm:px-6 sm:py-28 lg:px-8 lg:py-32">
       <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[1fr_1.05fr] lg:items-center lg:gap-16">
         {/* Editorial text + pillar grid. */}
         <AnimatedSection>
@@ -19,11 +19,11 @@ export function ConsultingSection() {
             title="تصمیم‌های ایمن، پیش از شروع پروژه"
             align="start"
           />
-          <p className="mt-6 max-w-xl text-lg font-semibold leading-9 text-ink">
+          <p className="mt-6 max-w-xl description-copy text-ink">
             طراحی، اجرا و مشاوره پیش از پروژه در زمینه سیستم‌های ارتینگ و ایمنی
             حریق.
           </p>
-          <p className="mt-4 max-w-xl text-base leading-8 text-steel-dark">
+          <p className="mt-4 max-w-xl description-copy text-ink">
             آسا با نگاه مهندسی و مستندسازی دقیق، مسیر ارزیابی، طراحی و اخذ
             تأییدیه‌های ایمنی را برای سازمان‌ها و کارگاه‌های صنعتی ساده‌تر و
             قابل اتکاتر می‌کند.
@@ -31,14 +31,14 @@ export function ConsultingSection() {
 
           <div className="mt-10 grid grid-cols-2 gap-3">
             {pillars.map((pillar) => (
-              <div key={pillar.num} className="rounded-2xl border border-ink/5 bg-paper p-5 sm:p-6">
+              <div key={pillar.num} className="brand-card rounded-2xl border border-accent/25 bg-paper p-5 sm:p-6">
                 <p className="font-heavy text-2xl text-accent-dark sm:text-3xl">
                   {pillar.num}
                 </p>
                 <p className="mt-2 font-display text-base font-bold text-ink">
                   {pillar.label}
                 </p>
-                <p className="mt-1 text-xs leading-6 text-steel-dark">
+                <p className="mt-1 description-copy text-ink">
                   {pillar.detail}
                 </p>
               </div>
@@ -47,7 +47,7 @@ export function ConsultingSection() {
         </AnimatedSection>
 
         <AnimatedSection delay={0.15} className="relative">
-          <div className="relative overflow-hidden rounded-[2rem]">
+          <div className="brand-photo relative overflow-hidden rounded-[2rem]">
             <img
               src="/images/service-vessels.jpg"
               alt="کارشناس بازرسی در میان مخازن تحت فشار"

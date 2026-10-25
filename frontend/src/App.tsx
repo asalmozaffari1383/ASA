@@ -8,6 +8,7 @@ import { FinancialGrid } from "./pages/ceo/FinancialGrid";
 import { CertificateCenter } from "./pages/ceo/CertificateCenter";
 import { ProfileSettings } from "./pages/settings/ProfileSettings";
 import { SiteContent } from "./pages/ceo/SiteContent";
+import { SiteContact } from "./pages/ceo/SiteContact";
 import { SitePartners } from "./pages/ceo/SitePartners";
 import { BotSettingsPage } from "./pages/ceo/BotSettings";
 
@@ -61,6 +62,7 @@ export default function App() {
           }
         />
         <Route path="ceo/site-content" element={<ProtectedRoute ceoOnly><SiteContent /></ProtectedRoute>} />
+        <Route path="ceo/site-contact" element={<ProtectedRoute ceoOnly><SiteContact /></ProtectedRoute>} />
         <Route path="ceo/site-partners" element={<ProtectedRoute ceoOnly><SitePartners /></ProtectedRoute>} />
         <Route path="ceo/bot-settings" element={<ProtectedRoute ceoOnly><BotSettingsPage /></ProtectedRoute>} />
         <Route path="settings" element={<ProfileSettings />} />

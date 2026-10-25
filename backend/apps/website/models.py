@@ -60,3 +60,26 @@ class CompanyPartner(models.Model):
 
     def __str__(self):
         return self.name
+
+
+def default_contact_links():
+    return [{'kind': 'instagram', 'label': 'اینستاگرام', 'text': '@imensazanararat', 'href': 'https://www.instagram.com/imensazanararat/'}, {'kind': 'web', 'label': 'وب\u200cسایت', 'text': 'www.asaeng.org', 'href': 'https://asaeng.org'}, {'kind': 'mail', 'label': 'ایمیل', 'text': 'info@asaeng.org', 'href': 'mailto:info@asaeng.org'}, {'kind': 'phone', 'label': 'تماس مستقیم', 'text': '09141651365', 'href': 'tel:+989141651365'}, {'kind': 'phone', 'label': 'شماره همراه، واتساپ و بله', 'text': '09002652365', 'href': 'tel:+989002652365'}, {'kind': 'map', 'label': 'نشانی', 'text': 'منطقه آزاد ماکو، روبه\u200cروی شهرداری', 'href': 'https://www.google.com/maps/search/?api=1&query=ماکو+شهرداری'}, {'kind': 'chat', 'label': 'پیام\u200cرسان بله', 'text': 'ثبت درخواست در بات آسا', 'href': 'https://ble.ir/AsaengBot'}]
+
+def default_contact_services():
+    return ['اعلام و اطفا حریق', 'ظروف تحت فشار', 'ایمنی برق']
+
+class ContactSettings(models.Model):
+    title = models.CharField("عنوان پنجره", max_length=100, default="تماس با آسا")
+    subtitle = models.CharField("نام شرکت", max_length=200, default="مهندسین مشاور ایمنی آسا", blank=True)
+    services_title = models.CharField("عنوان خدمات", max_length=200, default="ارزیابی و صدور گواهی ایمنی", blank=True)
+    services = models.JSONField("خدمات", default=default_contact_services, blank=True)
+    links = models.JSONField("راه‌های ارتباطی", default=default_contact_links, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    @classmethod
+    def load(cls):
+        return cls.objects.get_or_create(pk=1)[0]
+
+    class Meta:
+        verbose_name = "تماس با ما"
+        verbose_name_plural = "تماس با ما"

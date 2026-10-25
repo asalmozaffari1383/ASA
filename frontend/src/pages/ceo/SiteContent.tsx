@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { isAxiosError } from "axios";
+import { errorMessage } from "../../api/errorMessage";
 import { api } from "../../api/client";
 
 type ServiceCard = {
@@ -24,12 +24,6 @@ const emptyCard: Omit<ServiceCard, "id"> = {
   image_alt: "", default_image: "", position: 1, is_active: true,
 };
 
-function errorMessage(error: unknown): string {
-  if (isAxiosError(error) && error.response?.data) {
-    return Object.values(error.response.data).flat().map(String).join("؛ ");
-  }
-  return "ارتباط با سرور برقرار نشد. دوباره تلاش کنید.";
-}
 
 export function SiteContent() {
   const [cards, setCards] = useState<ServiceCard[]>([]);

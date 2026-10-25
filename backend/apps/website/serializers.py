@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import CompanyPartner, ServiceCard
+from .models import CompanyPartner, ContactSettings, ServiceCard
 
 
 class ServiceCardSerializer(serializers.ModelSerializer):
@@ -53,3 +53,45 @@ class CompanyPartnerSerializer(serializers.ModelSerializer):
 
     def get_logo_url(self, instance):
         return instance.logo.url if instance.logo else ""
+
+
+class ContactLinkSerializer(serializers.Serializer):
+    kind = serializers.ChoiceField(choices=["instagram", "web", "mail", "phone", "map", "chat"])
+    label = serializers.CharField(max_length=100)
+    text = serializers.CharField(max_length=300)
+    href = serializers.CharField(max_length=2000)
+
+    def validate_href(self, value):
+        import re
+        from urllib.parse import urlsplit
+        from django.core.validators import URLValidator, validate_email
+        from django.core.exceptions import ValidationError
+
+        if any(character.isspace() or ord(character) < 32 for character in value):
+            raise serializers.ValidationError("لینک نباید فاصله یا نویسه کنترلی داشته باشد؛ برای فاصله از %20 استفاده کنید.")
+        try:
+            scheme = urlsplit(value).scheme.lower()
+            if scheme in ("https", "http"):
+                URLValidator(schemes=["https", "http"])(value)
+                if urlsplit(value).username or urlsplit(value).password:
+                    raise ValidationError("Invalid credentials")
+            elif scheme == "mailto":
+                validate_email(value[7:])
+            elif scheme == "tel":
+                if not re.fullmatch(r"\+?[0-9()-]{5,25}", value[4:]):
+                    raise ValidationError("Invalid phone")
+            else:
+                raise ValidationError("Invalid scheme")
+        except (ValidationError, ValueError):
+            raise serializers.ValidationError("لینک معتبر با https://، http://، mailto: یا tel: وارد کنید.")
+        return value
+
+
+class ContactSettingsSerializer(serializers.ModelSerializer):
+    links = ContactLinkSerializer(many=True, max_length=20, allow_empty=True)
+    services = serializers.ListField(child=serializers.CharField(max_length=100), max_length=12, allow_empty=True)
+
+    class Meta:
+        model = ContactSettings
+        fields = ["title", "subtitle", "services_title", "services", "links", "updated_at"]
+        read_only_fields = ["updated_at"]

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { isAxiosError } from "axios";
 import { useAuth } from "../../auth/AuthContext";
 import {
   createUser,
@@ -226,6 +227,7 @@ function UserEditor({ target, onClose, onSaved }: {
   onClose: () => void;
   onSaved: () => void;
 }) {
+  const { user, refreshUser } = useAuth();
   const isNew = target === "new";
   const [form, setForm] = useState<UserForm>(
     isNew
@@ -246,10 +248,20 @@ function UserEditor({ target, onClose, onSaved }: {
   );
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const requiresConfirmation = form.role === "ceo" || (!isNew && (target.role === "ceo" || target.id === user?.id));
 
   const set = <K extends keyof UserForm>(k: K, v: UserForm[K]) => setForm((f) => ({ ...f, [k]: v }));
 
   const save = async () => {
+    if (requiresConfirmation && !currentPassword) {
+      setError("برای تغییر حساب مدیر، رمز فعلی حساب خودتان را وارد کنید.");
+      return;
+    }
+    if (!form.username.trim() || (isNew && !form.password) || (form.password && form.password.length < 8)) {
+      setError("نام کاربری الزامی است و رمز عبور جدید باید حداقل ۸ کاراکتر باشد.");
+      return;
+    }
     setBusy(true);
     setError("");
     try {
@@ -262,12 +274,17 @@ function UserEditor({ target, onClose, onSaved }: {
       fd.append("is_active", String(form.is_active));
       for (const p of PERMISSION_OPTIONS) fd.append(p.key, String(form[p.key]));
       if (form.password) fd.append("password", form.password);
+      if (currentPassword) fd.append("current_password", currentPassword);
       if (isNew) await createUser(fd);
       else await updateUser(target.id, fd);
+      if (!isNew && target.id === user?.id) await refreshUser();
       onSaved();
-    } catch {
-      setError("ذخیره کاربر با خطا مواجه شد. نام کاربری تکراری یا رمز کوتاه است؟");
+    } catch (failure) {
+      setError(isAxiosError(failure) && failure.response?.data
+        ? Object.values(failure.response.data).flat().map(String).join("؛ ")
+        : "ارتباط با سرور برقرار نشد. دوباره تلاش کنید.");
     } finally {
+      setCurrentPassword("");
       setBusy(false);
     }
   };
@@ -293,12 +310,16 @@ function UserEditor({ target, onClose, onSaved }: {
       {error && <p className="rounded-xl bg-red-50 p-2 text-sm text-red-600">{error}</p>}
 
       <Field label="نام کاربری">
-        <input className="input" value={form.username} disabled={!isNew}
+        <input className="input" value={form.username} autoComplete="off" disabled={busy}
           onChange={(e) => set("username", e.target.value)} />
       </Field>
       <Field label={isNew ? "رمز عبور" : "رمز عبور جدید (اختیاری)"}>
-        <input className="input" type="password" value={form.password}
+        <input className="input" type="password" autoComplete="new-password" value={form.password} disabled={busy}
           onChange={(e) => set("password", e.target.value)} />
+      </Field>
+      <Field label={requiresConfirmation ? "رمز فعلی حساب خودتان (الزامی)" : "رمز فعلی حساب مدیر (برای تغییر حساب‌های مدیریتی)"}>
+        <input className="input" type="password" autoComplete="current-password" maxLength={256}
+          value={currentPassword} disabled={busy} onChange={(event) => setCurrentPassword(event.target.value)} />
       </Field>
       <div className="grid grid-cols-2 gap-3">
         <Field label="نام"><input className="input" value={form.first_name} onChange={(e) => set("first_name", e.target.value)} /></Field>

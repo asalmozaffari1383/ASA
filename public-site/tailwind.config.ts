@@ -4,49 +4,46 @@ const config: Config = {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      fontSize: {
+        xs: ["1rem", { lineHeight: "1.75rem" }],
+        sm: ["1.125rem", { lineHeight: "2rem" }],
+        base: ["1.25rem", { lineHeight: "2.125rem" }],
+        lg: ["1.375rem", { lineHeight: "2.25rem" }],
+        xl: ["1.625rem", { lineHeight: "2.5rem" }],
+        "2xl": ["1.875rem", { lineHeight: "2.75rem" }],
+        "3xl": ["2.25rem", { lineHeight: "3.25rem" }],
+        "4xl": ["2.75rem", { lineHeight: "3.75rem" }],
+        "5xl": ["3.5rem", { lineHeight: "1.6" }],
+        "6xl": ["4.25rem", { lineHeight: "1.5" }],
+        "7xl": ["5rem", { lineHeight: "1.3" }],
+      },
       fontFamily: {
-        sans: [
-          "Vazirmatn",
-          "Vazir",
-          "IRANSans",
-          "Inter",
-          "ui-sans-serif",
-          "system-ui",
-          "sans-serif",
-        ],
-        display: [
-          "Estedad",
-          "Vazirmatn",
-          "Vazir",
-          "IRANSans",
-          "ui-sans-serif",
-          "system-ui",
-          "sans-serif",
-        ],
+        sans: ["B Nazanin", "Tahoma", "serif"],
+        display: ["B Nazanin", "Tahoma", "serif"],
       },
       colors: {
         // Monochrome tech — primary text and structural ink.
         ink: {
-          DEFAULT: "#12283F",
-          deep: "#0A1C30",
+          DEFAULT: "#123658",
+          deep: "#082742",
         },
         // Dark full-bleed blocks.
-        carbon: "#0A1C30",
-        graphite: "#17344E",
+        carbon: "#082742",
+        graphite: "#103D60",
         // Zinc/stone neutral scale.
         steel: {
           DEFAULT: "#7C8B99",
-          light: "#E2E8EF",
+          light: "#DCECF5",
           dark: "#526477",
         },
-        mist: "#F4F7FA",
+        mist: "#F3F9FD",
         sky: "#D6D3D1",
         paper: "#FFFFFF",
         // Muted stone — subtle accent and logo companion.
         accent: {
-          DEFAULT: "#90C4EA",
-          dark: "#1C5E92",
-          soft: "#EAF3FA",
+          DEFAULT: "#69C5ED",
+          dark: "#09679B",
+          soft: "#E7F5FC",
         },
         slateGlass: "rgba(255,255,255,0.92)",
       },

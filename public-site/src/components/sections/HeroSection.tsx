@@ -1,57 +1,49 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { Link } from "react-router-dom";
 
 export function HeroSection() {
   const reducedMotion = useReducedMotion();
+  const reveal = (delay: number) => ({
+    initial: reducedMotion ? false as const : { opacity: 0, y: 22 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.7, delay: reducedMotion ? 0 : delay },
+  });
 
   return (
-    <section id="home" aria-labelledby="hero-title" className="relative isolate bg-ink-deep pt-20 sm:pt-28">
+    <section id="home" aria-labelledby="hero-title" className="relative isolate bg-ink-deep pt-28 sm:pt-40">
       <div className="relative overflow-hidden">
-        <img
+        <motion.img
           src="/images/hero.jpg"
           alt="بازرسی تخصصی تجهیزات صنعتی توسط کارشناس ایمنی آسا"
           fetchPriority="high"
           decoding="async"
-          className="absolute inset-0 h-full w-full object-cover object-[35%_center] sm:object-left"
+          initial={reducedMotion ? false : { scale: 1.06 }}
+          animate={{ scale: 1 }}
+          transition={{ duration: 9, ease: "easeOut" }}
+          className="absolute inset-0 h-full w-full object-cover object-[58%_center] sm:object-center"
         />
-        <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(270deg,rgba(10,28,48,0.98)_0%,rgba(10,28,48,0.88)_32%,rgba(10,28,48,0.45)_62%,rgba(10,28,48,0.12)_100%)] max-sm:bg-[linear-gradient(180deg,rgba(10,28,48,0.9),rgba(10,28,48,0.82))]" />
-        <div className="relative mx-auto flex min-h-[580px] max-w-7xl items-center px-5 py-14 sm:min-h-[620px] sm:px-8 lg:min-h-[660px] lg:py-20">
-          <motion.div
-            initial={reducedMotion ? false : { opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.55 }}
-            className="max-w-xl text-white"
-          >
-            <p className="mb-7 flex items-center gap-3 text-xs font-medium text-white/75 sm:text-sm">
-              <span aria-hidden="true" className="h-px w-9 bg-accent" />
-              مهندسی، بازرسی و ایمنی کار
-            </p>
-            <h1 id="hero-title" className="font-display text-3xl font-extrabold leading-[1.75] sm:text-[2.75rem] sm:leading-[1.65] lg:text-5xl lg:leading-[1.65]">
+        <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,28,48,0.12),rgba(10,28,48,0.08)_40%,rgba(10,28,48,0.38))]" />
+        <div className="relative mx-auto flex min-h-[640px] max-w-7xl flex-col items-center justify-center px-4 py-16 text-center sm:min-h-[max(680px,calc(100svh-160px))] sm:px-8 sm:py-24">
+          <motion.p {...reveal(0.15)} className="mb-5 bg-ink-deep/85 px-5 py-1.5 text-base font-bold text-white sm:text-lg">
+            مهندسی، بازرسی و ایمنی کار
+          </motion.p>
+          <motion.div {...reveal(0.3)} className="relative max-w-full overflow-hidden border-b-4 border-accent bg-ink-deep/80 px-5 py-4 sm:px-12 sm:py-5">
+            <h1 id="hero-title" className="font-display text-[clamp(2.75rem,6vw,5.5rem)] font-bold leading-[1.5] text-white">
               ایمن سازان آرارات
-              <span className="mt-2 block text-2xl font-medium text-white/85 sm:text-3xl">دقت در بازرسی،<br className="sm:hidden" /> اطمینان در ایمنی.</span>
             </h1>
-            <p className="mt-7 max-w-lg text-sm leading-8 text-white/75 sm:text-base sm:leading-9">
+            {!reducedMotion && <motion.span aria-hidden="true" initial={{ scaleX: 1 }} animate={{ scaleX: 0 }} transition={{ duration: 0.85, delay: 0.45, ease: [0.76, 0, 0.24, 1] }} className="pointer-events-none absolute inset-0 origin-left bg-accent-dark" />}
+          </motion.div>
+          <motion.p {...reveal(0.8)} className="mt-3 max-w-full bg-ink-deep/90 px-5 py-2 text-xl font-bold leading-[1.7] text-white sm:px-8 sm:text-3xl">
+            دقت در بازرسی، اطمینان در ایمنی
+          </motion.p>
+          <motion.div {...reveal(1.1)} className="relative mt-6 w-full max-w-3xl overflow-hidden bg-white/95 px-5 py-4 shadow-card sm:px-8 sm:py-5">
+            <p className="description-copy text-ink">
               از ارزیابی فنی تجهیزات تا طراحی راهکارهای ایمنی؛ همراه صنایع و کارگاه‌ها برای شناخت ریسک، حفاظت از سرمایه و ساختن محیط کاری ایمن‌تر.
             </p>
-            <div className="mt-9 flex flex-wrap items-center gap-4">
-              <Link to="/request-certificate" className="inline-flex min-h-12 items-center justify-center gap-7 rounded-md bg-white px-6 text-sm font-bold text-ink transition hover:bg-accent-soft">
-                ثبت درخواست بازرسی <span aria-hidden="true">↖</span>
-              </Link>
-              <a href="#services" className="inline-flex min-h-12 items-center justify-center gap-5 rounded-md border border-white/35 px-6 text-sm font-medium text-white transition hover:border-white hover:bg-white/10">
-                خدمات تخصصی <span aria-hidden="true">↓</span>
-              </a>
-            </div>
-            <div className="mt-10 flex flex-wrap gap-x-6 gap-y-3 border-t border-white/20 pt-6 text-xs text-white/75">
-              {["بازرسی تخصصی", "گزارش مستند", "پیگیری آنلاین"].map((text) => (
-                <span key={text} className="flex items-center gap-2">
-                  <span className="text-accent" aria-hidden="true">✓</span>{text}
-                </span>
-              ))}
-            </div>
+            {!reducedMotion && <motion.span aria-hidden="true" initial={{ scaleX: 1 }} animate={{ scaleX: 0 }} transition={{ duration: 0.9, delay: 1.2, ease: [0.76, 0, 0.24, 1] }} className="pointer-events-none absolute inset-0 origin-left bg-accent" />}
           </motion.div>
-        </div>
-        <div aria-hidden="true" className="absolute bottom-8 left-8 hidden items-center gap-3 text-[10px] tracking-[0.2em] text-white/80 lg:flex" dir="ltr">
-          <span className="h-px w-12 bg-white/50" /> ASA / TECHNICAL INSPECTION
+          <motion.a {...reveal(1.65)} href="#services" className="mt-7 inline-flex min-h-12 items-center justify-center rounded-md border border-white/70 bg-ink-deep/85 px-8 py-1.5 text-base font-bold text-white transition-colors hover:bg-accent-dark focus-visible:bg-accent-dark">
+            خدمات تخصصی
+          </motion.a>
         </div>
       </div>
     </section>

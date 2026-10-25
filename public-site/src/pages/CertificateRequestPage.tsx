@@ -3,7 +3,7 @@ import { CertificateRequestWizard } from "../features/certificate-request/Certif
 
 export function CertificateRequestPage() {
   return (
-    <main id="main-content" tabIndex={-1} className="px-5 pb-24 pt-32 sm:px-6 sm:pb-28 sm:pt-36 lg:px-8 lg:pt-40">
+    <main id="main-content" tabIndex={-1} className="px-5 pb-24 pt-32 sm:px-6 sm:pb-28 sm:pt-44 lg:px-8 lg:pt-48">
       <div className="mx-auto max-w-3xl">
         <div className="mb-10 text-center">
           <Link

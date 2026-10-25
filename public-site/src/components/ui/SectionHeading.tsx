@@ -22,10 +22,10 @@ export function SectionHeading({
       {/* Bare technical label: accent tick + tracked caption, no chip chrome. */}
       <span
         className={`inline-flex items-center gap-2.5 text-xs font-bold tracking-[0.22em] ${
-          onDark ? "text-white/60" : "text-steel-dark"
+          onDark ? "text-accent" : "text-accent-dark"
         }`}
       >
-        <span className="h-2 w-2 bg-accent" aria-hidden="true" />
+        <span className="h-5 w-1.5 -skew-x-12 bg-accent" aria-hidden="true" />
         {eyebrow}
       </span>
       <h2
@@ -37,8 +37,8 @@ export function SectionHeading({
       </h2>
       {description ? (
         <p
-          className={`mt-5 max-w-2xl text-lg leading-8 ${
-            onDark ? "text-white/65" : "text-steel-dark"
+          className={`mt-5 max-w-2xl description-copy ${
+            onDark ? "text-white/95" : "text-ink"
           } ${isStart ? "" : "mx-auto"}`}
         >
           {description}

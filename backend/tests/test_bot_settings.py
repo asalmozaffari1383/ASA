@@ -168,6 +168,23 @@ class BotSettingsTests(APITestCase):
         self.assertTrue(self.manager.check_password("pw12345678"))
         self.assertEqual(self.client.patch(target, {"password": "new-safe-password", "current_password": "pw12345678"}, format="json").status_code, 200)
 
+    def test_manager_can_rename_and_change_password_from_multipart_editor(self):
+        target = reverse("users:users-detail", args=[self.manager.pk])
+        original_username = self.manager.username
+        values = {"username": "renamed-manager", "password": "new-manager-password", "role": "ceo"}
+        response = self.client.patch(target, {**values, "current_password": "wrong"}, format="multipart")
+        self.assertEqual(response.status_code, 400)
+        self.manager.refresh_from_db()
+        self.assertEqual(self.manager.username, original_username)
+        self.assertTrue(self.manager.check_password("pw12345678"))
+        response = self.client.patch(target, {**values, "current_password": "pw12345678"}, format="multipart")
+        self.assertEqual(response.status_code, 200, response.data)
+        self.manager.refresh_from_db()
+        self.assertEqual(self.manager.username, "renamed-manager")
+        self.assertTrue(self.manager.check_password("new-manager-password"))
+        self.assertNotIn("current_password", response.data)
+        self.assertNotIn("password", response.data)
+
     def test_ordinary_staff_management_still_works(self):
         response = self.client.post(reverse("users:users-list"), {"username": "staff", "password": "staff-password", "role": "secretary"}, format="json")
         self.assertEqual(response.status_code, 201, response.data)

@@ -60,7 +60,7 @@ export function ServiceDetailPage() {
   ];
 
   return (
-    <main id="main-content" tabIndex={-1} className="min-h-[70vh] pt-20 sm:pt-28">
+    <main id="main-content" tabIndex={-1} className="min-h-[70vh] pt-28 sm:pt-40">
       {loading ? (
         <div role="status" className="mx-auto max-w-7xl px-5 py-20 sm:px-8">
           <p className="text-sm text-steel-dark">در حال دریافت اطلاعات خدمت…</p>
@@ -85,7 +85,7 @@ export function ServiceDetailPage() {
                 <span aria-current="page">{service.title}</span>
               </nav>
               <h1 className="mt-6 font-display text-2xl font-bold leading-[1.7] sm:text-4xl sm:leading-[1.7]">{service.title}</h1>
-              <p className="mt-4 max-w-3xl text-sm leading-8 text-white/75 sm:text-base">{service.description}</p>
+              <p className="mt-4 max-w-3xl description-copy text-white/95">{service.description}</p>
             </div>
           </header>
           <div className="mx-auto grid max-w-7xl items-start gap-8 px-5 py-10 sm:px-8 sm:py-14 lg:grid-cols-[minmax(0,1fr)_300px] lg:gap-12">
@@ -95,7 +95,7 @@ export function ServiceDetailPage() {
                 <section id="service-overview" aria-labelledby="overview-title">
                   <p className="text-xs font-semibold text-accent-dark">خدمات تخصصی آسا</p>
                   <h2 id="overview-title" className="mt-3 font-display text-xl font-bold leading-9 sm:text-2xl">معرفی {service.title}</h2>
-                  <div className="mt-5 space-y-5 text-sm leading-9 text-steel-dark sm:text-base">
+                  <div className="mt-5 space-y-5 description-copy text-ink">
                     {(service.details || service.description).split(/\n\s*\n/).filter((paragraph) => paragraph.trim()).map((paragraph, index) => <p key={index} className="whitespace-pre-line break-words">{paragraph}</p>)}
                   </div>
                   {service.specs.length > 0 && <ul className="mt-7 flex flex-wrap gap-2">{service.specs.map((spec, index) => <li key={index} className="rounded-md bg-accent-soft px-3 py-2 text-xs leading-6 text-accent-dark">{spec}</li>)}</ul>}
@@ -103,19 +103,18 @@ export function ServiceDetailPage() {
                 {applications.length > 0 && (
                   <section id="service-applications" aria-labelledby="applications-title" className="border-t border-ink/10 pt-8">
                     <h2 id="applications-title" className="font-display text-xl font-bold leading-9 sm:text-2xl">دامنه و کاربردها</h2>
-                    <ul className="mt-5 grid gap-3 sm:grid-cols-2">{applications.map((item, index) => <li key={index} className="flex items-start gap-3 rounded-lg bg-mist p-4 text-sm leading-8 text-steel-dark"><span aria-hidden="true" className="text-accent-dark">✓</span><span className="min-w-0 break-words">{item}</span></li>)}</ul>
+                    <ul className="mt-5 grid gap-3 sm:grid-cols-2">{applications.map((item, index) => <li key={index} className="flex items-start gap-3 rounded-lg bg-mist p-4 description-copy text-ink"><span aria-hidden="true" className="text-accent-dark">✓</span><span className="min-w-0 break-words">{item}</span></li>)}</ul>
                   </section>
                 )}
                 {steps.length > 0 && (
                   <section id="service-steps" aria-labelledby="steps-title" className="border-t border-ink/10 pt-8">
                     <h2 id="steps-title" className="font-display text-xl font-bold leading-9 sm:text-2xl">مراحل انجام خدمت</h2>
-                    <ol className="mt-6 space-y-5">{steps.map((step, index) => <li key={index} className="flex items-start gap-4"><span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-bold text-accent-dark">{(index + 1).toLocaleString("fa-IR")}</span><p className="min-w-0 break-words pt-1 text-sm leading-8 text-steel-dark">{step}</p></li>)}</ol>
+                    <ol className="mt-6 space-y-5">{steps.map((step, index) => <li key={index} className="flex items-start gap-4"><span aria-hidden="true" className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-accent-soft text-sm font-bold text-accent-dark">{(index + 1).toLocaleString("fa-IR")}</span><p className="min-w-0 break-words pt-1 description-copy text-ink">{step}</p></li>)}</ol>
                   </section>
                 )}
                 <section id="service-request" aria-labelledby="request-title" className="rounded-xl bg-ink p-6 text-white sm:p-8">
                   <h2 id="request-title" className="font-display text-xl font-bold leading-9">برای بررسی پروژه‌تان آماده‌اید؟</h2>
-                  <p className="mt-3 text-sm leading-8 text-white/75">اطلاعات مجموعه و نیاز خود را در فرم درخواست ثبت کنید تا محدوده خدمت و مدارک مورد نیاز بررسی شود.</p>
-                  <Link to="/request-certificate" className="mt-6 inline-flex min-h-12 items-center gap-6 rounded-md bg-white px-5 text-sm font-bold text-ink">ثبت درخواست بازرسی <span aria-hidden="true">↖</span></Link>
+                  <p className="mt-3 description-copy text-white/95">اطلاعات مجموعه و نیاز خود را در فرم درخواست ثبت کنید تا محدوده خدمت و مدارک مورد نیاز بررسی شود.</p>
                 </section>
               </div>
             </article>

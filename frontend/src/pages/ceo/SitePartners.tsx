@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { isAxiosError } from "axios";
+import { errorMessage } from "../../api/errorMessage";
 import { api } from "../../api/client";
 
 type CompanyPartner = {
@@ -12,12 +12,6 @@ type CompanyPartner = {
 
 const emptyPartner = { name: "", position: 1, is_active: true, logo_url: "" };
 
-function errorMessage(error: unknown): string {
-  if (isAxiosError(error) && error.response?.data) {
-    return Object.values(error.response.data).flat().map(String).join("؛ ");
-  }
-  return "ارتباط با سرور برقرار نشد. دوباره تلاش کنید.";
-}
 
 export function SitePartners() {
   const [partners, setPartners] = useState<CompanyPartner[]>([]);

@@ -1,5 +1,8 @@
 import json
 import tempfile
+from unittest.mock import patch
+
+from botocore.exceptions import ClientError
 
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import override_settings
@@ -165,3 +168,22 @@ class SiteContentTests(APITestCase):
         self.assertEqual(self.client.post(url, {"name": "بدون لوگو"}).status_code, 400)
         fake = SimpleUploadedFile("fake.png", b"<script>invalid</script>", content_type="image/png")
         self.assertEqual(self.client.post(url, {"name": "تصویر نامعتبر", "logo": fake}, format="multipart").status_code, 400)
+
+    def test_partner_storage_failure_is_json_and_preserves_the_record(self):
+        self.client.force_authenticate(make_user(role="ceo"))
+        field_storage = CompanyPartner._meta.get_field("logo").storage
+        failure = ClientError({"Error": {"Code": "AccessDenied", "Message": "Forbidden"}}, "PutObject")
+        with patch.object(field_storage, "save", side_effect=failure):
+            response = self.client.post("/api/ceo/site-partners/", {"name": "آپلود ناموفق", "logo": png_upload()}, format="multipart")
+        self.assertEqual(response.status_code, 503)
+        self.assertEqual(response["Content-Type"], "application/json")
+        self.assertNotIn("AccessDenied", str(response.data))
+        self.assertFalse(CompanyPartner.objects.filter(name="آپلود ناموفق").exists())
+        partner = CompanyPartner.objects.create(name="نام اصلی", logo=png_upload())
+        original_logo = partner.logo.name
+        with patch.object(field_storage, "save", side_effect=failure):
+            response = self.client.patch(f"/api/ceo/site-partners/{partner.pk}/", {"name": "نام جدید", "logo": png_upload()}, format="multipart")
+        self.assertEqual(response.status_code, 503)
+        partner.refresh_from_db()
+        self.assertEqual(partner.name, "نام اصلی")
+        self.assertEqual(partner.logo.name, original_logo)

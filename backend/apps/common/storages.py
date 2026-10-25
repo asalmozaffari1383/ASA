@@ -13,7 +13,12 @@ Routing summary (implemented in settings):
     backend with zero external services.
 """
 
+import posixpath
+from uuid import uuid4
+
+from django.core.exceptions import SuspiciousFileOperation
 from storages.backends.s3boto3 import S3Boto3Storage
+from storages.utils import clean_name
 
 
 class MediaS3Storage(S3Boto3Storage):
@@ -29,3 +34,17 @@ class MediaS3Storage(S3Boto3Storage):
     file_overwrite = False
     default_acl = "private"
     querystring_auth = True
+
+    def get_available_name(self, name, max_length=None):
+        """Use unpredictable keys without requiring a pre-upload HeadObject.
+
+        S3 returns 403 for a missing object when the key lacks ListBucket access.
+        A random 128-bit name avoids that lookup without granting bucket listing,
+        changing private ACLs, or overwriting a user's original filename.
+        """
+        directory, filename = posixpath.split(clean_name(name))
+        extension = posixpath.splitext(filename)[1]
+        key = posixpath.join(directory, f"{uuid4().hex}{extension}")
+        if max_length is not None and len(key) > max_length:
+            raise SuspiciousFileOperation("Upload path exceeds the field length limit.")
+        return key
